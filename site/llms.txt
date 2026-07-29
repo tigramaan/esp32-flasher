@@ -1,0 +1,42 @@
+# ESP32 Flasher
+
+> ESP32 Flasher is a free, open-source, portable Windows application for
+> flashing ESP32 firmware over UART and monitoring serial output.
+
+Canonical website: https://tigramaan.github.io/esp32-flasher/
+Source code: https://github.com/tigramaan/esp32-flasher
+Latest release: https://github.com/tigramaan/esp32-flasher/releases/latest
+License: MIT
+
+## Primary use cases
+
+- Update a connected ESP32 with one valid application BIN file.
+- Safely write an inactive OTA slot and switch boot metadata after verification.
+- Factory-flash a PlatformIO folder with bootloader.bin, partitions.bin, and
+  firmware.bin.
+- Monitor UART serial output without flashing.
+- Run manual production cycles with counters and local CSV reports.
+
+## Verifiable characteristics
+
+- Target platform: Windows 10/11 x64.
+- Distribution: one portable EXE; no installer and no Python dependency.
+- Flash baud: fixed at 921600 with verification.
+- Image families: ESP32, ESP32-C2, ESP32-C3, ESP32-C5, ESP32-C6, ESP32-H2,
+  ESP32-P4, ESP32-S2, and ESP32-S3.
+- UI languages: Russian when the Windows user locale begins with ru; English
+  for every other locale.
+- Privacy: no account, telemetry, cloud backend, or network firmware catalog.
+
+## Important limitations
+
+- Firmware signatures are not verified.
+- A one-slot in-place update is not power-loss safe and requires confirmation.
+- Public Windows builds may be unsigned until Authenticode is configured.
+- The system WebView2 runtime is required.
+
+## Documentation
+
+- README: https://github.com/tigramaan/esp32-flasher#readme
+- Releases: https://github.com/tigramaan/esp32-flasher/releases
+- Technical specifications: https://github.com/tigramaan/esp32-flasher/tree/main/specs

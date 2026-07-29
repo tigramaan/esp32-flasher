@@ -1,8 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicedoc/tauri/refs/heads/dev/crates/tauri-config-schema/schema.json",
-  "productName": "Serial Monitor",
-  "version": "1.0.0",
-  "identifier": "com.soofdev.serialmonitor",
+  "productName": "ESP32 Flasher",
+  "mainBinaryName": "ESP32 Flasher",
+  "version": "0.1.0",
+  "identifier": "com.tigramaan.esp32flasher",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
@@ -12,21 +13,22 @@
   "app": {
     "windows": [
       {
-        "title": "Serial Monitor",
-        "width": 900,
-        "height": 700,
+        "title": "ESP32 Flasher",
+        "width": 1120,
+        "height": 780,
         "resizable": true,
-        "minWidth": 600,
-        "minHeight": 400
+        "minWidth": 320,
+        "minHeight": 500,
+        "center": true
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src ipc: http://ipc.localhost"
     }
   },
   "bundle": {
-    "active": true,
-    "targets": "all",
+    "active": false,
+    "targets": [],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

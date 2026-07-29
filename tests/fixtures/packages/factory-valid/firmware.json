@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "package_id": "fixture-factory",
+  "display_name": "Factory fixture",
+  "firmware_version": "1.0.0-test",
+  "kind": "factory",
+  "target_chips": ["esp32"],
+  "partition_table_offset": "0x8000",
+  "monitor": {
+    "baud": 115200,
+    "success_marker": "PROGRAMMER_READY",
+    "success_timeout_ms": 15000
+  },
+  "ota": {
+    "rollback_enabled": false
+  },
+  "segments": [
+    {
+      "role": "bootloader",
+      "file": "bootloader.bin",
+      "offset": "0x1000",
+      "size": 36,
+      "sha256": "f0dae5780cff5f961fd653c7530072dc6f0abeb474c03fae7210bac6a7485d0e"
+    },
+    {
+      "role": "partition_table",
+      "file": "partition-table.bin",
+      "offset": "0x8000",
+      "size": 41,
+      "sha256": "3832775823ff19598dfb1b744cac45825b47742c9447650e407e27cd87120ca9"
+    },
+    {
+      "role": "application",
+      "file": "application.bin",
+      "offset": "0x10000",
+      "size": 37,
+      "sha256": "3083c22621836304b565d0f7334956bb7a25266d71afdabe238e5808cdf1f7d4"
+    }
+  ]
+}

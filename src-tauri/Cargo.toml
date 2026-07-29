@@ -1,10 +1,11 @@
 [package]
-name = "serial-monitor"
-version = "1.0.0"
-edition = "2021"
+name = "esp32-flasher"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
 
 [lib]
-name = "serial_monitor_lib"
+name = "esp32_flasher_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -13,9 +14,19 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
 serialport = "4"
-espflash = { version = "4", default-features = false, features = ["serialport"] }
-tokio = { version = "1", features = ["sync", "time", "rt-multi-thread", "fs", "io-util"] }
-chrono = "0.4"
+espflash = { version = "=4.3.0", default-features = false, features = ["serialport"] }
+tokio = { version = "1", features = ["sync", "time", "rt-multi-thread", "fs", "io-util", "macros"] }
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+programmer-core = { path = "../crates/programmer-core" }
+csv = "1"
+base64 = "0.22"
+tempfile = "3"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Globalization"] }

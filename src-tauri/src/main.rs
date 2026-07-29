@@ -1,5 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    serial_monitor_lib::run()
+    esp32_flasher_lib::run()
 }

@@ -1,0 +1,198 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://programmer.local/contracts/firmware-package-v1.schema.json",
+  "title": "Programmer firmware package manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "package_id",
+    "display_name",
+    "firmware_version",
+    "kind",
+    "target_chips",
+    "partition_table_offset",
+    "monitor",
+    "ota",
+    "segments"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "package_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]{1,64}$"
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "firmware_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "kind": {
+      "enum": ["factory", "update"]
+    },
+    "target_chips": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "esp32",
+          "esp32c2",
+          "esp32c3",
+          "esp32c5",
+          "esp32c6",
+          "esp32h2",
+          "esp32p4",
+          "esp32s2",
+          "esp32s3"
+        ]
+      }
+    },
+    "partition_table_offset": {
+      "$ref": "#/$defs/hexAddress"
+    },
+    "monitor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["baud", "success_marker", "success_timeout_ms"],
+      "properties": {
+        "baud": {
+          "enum": [9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600]
+        },
+        "success_marker": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "success_timeout_ms": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 120000
+        }
+      }
+    },
+    "ota": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rollback_enabled"],
+      "properties": {
+        "rollback_enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "segments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/segment"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "update"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "segments": {
+            "minItems": 1,
+            "maxItems": 1,
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/segment"
+                },
+                {
+                  "properties": {
+                    "role": {
+                      "const": "application"
+                    }
+                  },
+                  "not": {
+                    "required": ["offset"]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "factory"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "segments": {
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/segment"
+                },
+                {
+                  "required": ["offset"]
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "hexAddress": {
+      "type": "string",
+      "pattern": "^0x[0-9A-Fa-f]{1,8}$"
+    },
+    "segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "file", "size", "sha256"],
+      "properties": {
+        "role": {
+          "enum": [
+            "bootloader",
+            "partition_table",
+            "application",
+            "ota_data",
+            "data"
+          ]
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "offset": {
+          "$ref": "#/$defs/hexAddress"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 67108864
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}

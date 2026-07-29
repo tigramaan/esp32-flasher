@@ -1,100 +1,170 @@
-# Serial Monitor
+# ESP32 Flasher
 
-A lightweight, cross-platform desktop serial monitor built for ESP32 development. Connect to multiple serial devices simultaneously with full bidirectional communication, filtering, logging, and firmware flashing.
+[![Windows build](https://github.com/tigramaan/esp32-flasher/actions/workflows/build.yml/badge.svg)](https://github.com/tigramaan/esp32-flasher/actions/workflows/build.yml)
+[![Latest release](https://img.shields.io/github/v/release/tigramaan/esp32-flasher?display_name=tag)](https://github.com/tigramaan/esp32-flasher/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Built with [Tauri 2](https://tauri.app/), TypeScript, and Rust.
+ESP32 Flasher is a free, open-source, portable Windows application for flashing
+ESP32 firmware over UART and monitoring serial output. It is designed for two
+jobs: simple firmware updates by end users and fast, repeatable factory
+programming.
+
+Download the latest portable build:
+[ESP32-Flasher-Windows-x64.exe](https://github.com/tigramaan/esp32-flasher/releases/latest/download/ESP32-Flasher-Windows-x64.exe).
+There is no installer and no Python dependency.
+
+Project website:
+[tigramaan.github.io/esp32-flasher](https://tigramaan.github.io/esp32-flasher/).
 
 ## Features
 
-- **Multi-device support** — Open unlimited concurrent serial connections in tabs
-- **Real-time terminal** — Dark-themed terminal output with auto-scroll and 10K line buffer
-- **Firmware flashing** — Flash ESP32 firmware via single binary or ESP-IDF project mode
-- **Command input** — Send commands with configurable line endings (LF, CR, CRLF) and history (Up/Down arrows)
-- **Filtering** — Real-time case-insensitive text filtering without data loss
-- **Log to file** — Toggle file logging with optional timestamps, auto-named `SerialLog_<port>_<timestamp>.txt`
-- **Auto-reconnect** — Automatically reconnects on USB unplug or device reset (up to 30 attempts)
-- **Timestamps** — Optional `[HH:MM:SS.mmm]` prefix per line
-- **Baud rate presets** — 9600, 19200, 38400, 57600, 115200 (default), 230400, 460800, 921600
+- One portable Windows x64 EXE.
+- Automatic COM port selection when exactly one serial device is present.
+- ESP32 chip, MAC address, flash size, image, partition, and range validation.
+- Single-file application update: select any valid application `.bin` file.
+- Safe OTA updates: writes and verifies an inactive slot before switching boot
+  metadata.
+- Factory programming from a standard PlatformIO folder containing
+  `bootloader.bin`, `partitions.bin`, and `firmware.bin`.
+- Computed flash map shown before factory programming.
+- Fixed 921600 baud flashing with flash verification.
+- Live progress, structured diagnostics, and automatic UART monitoring.
+- Standalone UART monitor with connect, disconnect, baud-rate selection, and
+  normal board restart.
+- Production sessions with passed/failed counters and UTF-8 CSV reports.
+- Optional UART ready marker and guarded full-flash erase.
+- Automatic interface language: Russian for a Russian Windows locale, English
+  for every other locale.
+- Local-only operation with no telemetry and no firmware upload.
 
-### Keyboard Shortcuts
+Supported image families are ESP32, ESP32-C2, ESP32-C3, ESP32-C5, ESP32-C6,
+ESP32-H2, ESP32-P4, ESP32-S2, and ESP32-S3.
 
-| Shortcut | Action |
-|---|---|
-| `Ctrl+Shift+T` | New connection |
-| `Ctrl+Tab` | Next tab |
-| `Ctrl+Shift+Tab` | Previous tab |
-| `Ctrl+L` | Clear terminal |
+## Quick start
 
-## Prerequisites
+1. Download `ESP32-Flasher-Windows-x64.exe` from the
+   [latest release](https://github.com/tigramaan/esp32-flasher/releases/latest).
+2. Put the EXE in a writable folder and run it.
+3. Connect one ESP32 board over a data-capable USB cable.
+4. Choose an application BIN for an update, or switch to Production and choose
+   a PlatformIO build folder.
+5. Review the selected port and firmware, then start flashing.
+6. After verification, ESP32 Flasher restarts the board and opens the UART
+   monitor.
 
-- [Node.js](https://nodejs.org/) 22+
-- [Rust](https://rustup.rs/) stable toolchain
-- macOS or Windows
+The first run creates a local `data` folder next to the EXE for settings,
+operation logs, and production CSV reports. If that folder is read-only, the
+application asks you to choose another working folder.
 
-## Getting Started
+## Firmware inputs
 
-```bash
-# Install dependencies
-npm install
+For a normal application update, select one application `.bin` file. The file
+may have any name. ESP32 Flasher reads the partition table and OTA metadata from
+the connected device before writing and chooses a safe target when one exists.
 
-# Start development server
-npm run dev
+For factory programming, select a PlatformIO folder:
+
+```text
+bootloader.bin
+partitions.bin
+firmware.bin
+boot_app0.bin    # optional
 ```
 
-## Building
+ESP32 Flasher parses `partitions.bin`, checks the image chip, computes segment
+addresses, validates flash capacity, and displays the write map before the
+operation starts.
 
-```bash
-# Build for production
-npm run tauri build
+An optional advanced `programmer-pack` CLI remains available for teams that
+need reproducible, versioned legacy packages. It is not required for the normal
+desktop workflows.
+
+## UART monitor
+
+Open the UART Monitor tab to monitor a board without flashing it. The selected
+port opens passively: the application does not reset the board just to start
+monitoring. You can disconnect and reconnect explicitly, choose a supported
+baud rate, or restart the board in normal boot mode.
+
+When flashing starts, ESP32 Flasher closes the monitor, waits for the COM port
+to be released, locks monitor controls, and then starts the bootloader
+connection. The monitor opens again after flashing. Long UART lines are not
+wrapped; use horizontal scrolling to inspect them.
+
+## Safety model
+
+- Firmware and device layout are validated before the first flash write.
+- OTA metadata is switched only after the new application has been written and
+  verified.
+- Updating a one-slot device requires explicit confirmation because it is not
+  power-loss safe.
+- Full-flash erase is off by default, limited to Production mode, and requires
+  confirmation.
+- The application does not silently reduce the flashing baud rate.
+- Firmware signatures are not verified; obtain BIN files from a source you
+  trust.
+- Public releases may be unsigned until Authenticode signing is configured, so
+  Windows SmartScreen may display a warning.
+
+## Build from source
+
+Requirements:
+
+- Windows 10 or 11 x64;
+- Node.js 22 or newer;
+- Rust stable with the `x86_64-pc-windows-msvc` target;
+- Visual Studio 2022 Build Tools with **Desktop development with C++** and a
+  Windows SDK;
+- system WebView2.
+
+The full Visual Studio IDE is not required.
+
+```powershell
+npm ci
+npm test
+npm run build
+cargo test --workspace
+npm run build:portable
 ```
 
-Output:
-- **macOS** — `.dmg` in `src-tauri/target/release/bundle/dmg/`
-- **Windows** — `.exe` and `.msi` in `src-tauri/target/release/bundle/`
+The portable application is created at:
 
-## Testing
-
-```bash
-npm run test
+```text
+target\release\ESP32 Flasher.exe
 ```
 
-## Project Structure
+Optional package tool:
 
+```powershell
+cargo build --release -p programmer-pack
 ```
-src/                    # TypeScript frontend (vanilla DOM, no framework)
-  main.ts               # App entry point
-  tab-manager.ts        # Multi-tab lifecycle
-  connection.ts         # Per-connection UI & state
-  terminal.ts           # Terminal display & line management
-  command-input.ts      # Command input with history
-  filter.ts             # Real-time filter component
-  flash-panel.ts        # Firmware flashing UI
-  serial-api.ts         # Tauri IPC bridge
-  flash-api.ts          # Flash operation APIs
-  types.ts              # TypeScript interfaces
-  styles.css            # Dark theme (Catppuccin)
 
-src-tauri/              # Rust backend
-  src/
-    lib.rs              # Tauri app builder
-    commands.rs         # Tauri commands (list_ports, connect, send, etc.)
-    serial.rs           # Serial I/O & read loop
-    state.rs            # Connection state management
-    flash.rs            # ESP32 flashing via espflash
-```
+Full verification commands and hardware procedures are documented in
+[specs/VERIFICATION_RUNBOOK.md](specs/VERIFICATION_RUNBOOK.md).
+
+## Project structure
+
+- `src/` — TypeScript UI, state, and RU/EN localization.
+- `src-tauri/` — Tauri IPC and Windows serial/flash/filesystem adapters.
+- `crates/programmer-core/` — pure ESP image, partition, OTA, and guard logic.
+- `tools/firmware-packager/` — optional legacy package CLI.
+- `site/` — static GitHub Pages source.
+- `specs/` and `docs/` — requirements, contracts, ADRs, traceability, and
+  verification runbooks.
+
+## Privacy
+
+ESP32 Flasher has no telemetry, analytics, account, cloud backend, or network
+firmware catalog. Firmware, serial output, settings, logs, and reports remain on
+the local computer.
+
+## Origin
+
+ESP32 Flasher is based on
+[soofdev/serial-monitor](https://github.com/soofdev/serial-monitor), revision
+`03aa2879b226af831f7b11c1aea2139c6b3f6d79`. The upstream remote and attribution
+are retained.
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
-
-## Screenshots
-
-<img width="902" height="699" alt="Screenshot 2026-02-22 at 5 35 11 PM" src="https://github.com/user-attachments/assets/70e8aeb6-74a8-426b-8078-225978e9a6a7" />
-
-<img width="894" height="696" alt="Screenshot 2026-02-22 at 5 35 44 PM" src="https://github.com/user-attachments/assets/1ae1878f-dadc-4f20-be04-af21bc138c58" />
-
-<img width="895" height="697" alt="Screenshot 2026-02-22 at 5 36 26 PM" src="https://github.com/user-attachments/assets/9fa8a95e-dc6e-41a0-bd4b-7c707de2170a" />
-
-<img width="897" height="697" alt="Screenshot 2026-02-22 at 5 36 36 PM" src="https://github.com/user-attachments/assets/48279229-8bd7-4a7f-b738-17b1bce8636e" />
-
-<img width="550" height="450" alt="Screenshot 2026-02-22 at 3 04 10 PM" src="https://github.com/user-attachments/assets/0fd3e4d8-7a51-4dba-a796-dfd364d85598" />
+[MIT](LICENSE). Copyright notices from the original project are preserved.

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "package_id": "fixture-update",
+  "display_name": "Update fixture",
+  "firmware_version": "1.0.1-test",
+  "kind": "update",
+  "target_chips": ["esp32"],
+  "partition_table_offset": "0x8000",
+  "monitor": {
+    "baud": 115200,
+    "success_marker": "PROGRAMMER_READY",
+    "success_timeout_ms": 15000
+  },
+  "ota": {
+    "rollback_enabled": false
+  },
+  "segments": [
+    {
+      "role": "application",
+      "file": "application.bin",
+      "size": 44,
+      "sha256": "f77d4c18845132ce8df5fc27cdc3aad2fd0a22ea7ae1fbe695732105df4fce73"
+    }
+  ]
+}

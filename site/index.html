@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ESP32 Flasher for Windows — Portable UART Firmware Tool</title>
+    <meta
+      name="description"
+      content="Free portable ESP32 firmware flasher and UART serial monitor for Windows. Update one BIN or flash a PlatformIO build folder without Python or an installer."
+    />
+    <meta
+      name="keywords"
+      content="ESP32 flasher, ESP32 firmware flashing tool, ESP32 UART monitor, ESP32 Windows, PlatformIO firmware, ESP32 OTA update"
+    />
+    <meta name="author" content="ESP32 Flasher contributors" />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta name="theme-color" content="#0a1220" />
+    <link rel="canonical" href="https://tigramaan.github.io/esp32-flasher/" />
+    <link
+      rel="alternate"
+      hreflang="en"
+      href="https://tigramaan.github.io/esp32-flasher/"
+    />
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href="https://tigramaan.github.io/esp32-flasher/"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="icon" href="./mark.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ESP32 Flasher" />
+    <meta
+      property="og:title"
+      content="ESP32 Flasher — Portable ESP32 firmware tool for Windows"
+    />
+    <meta
+      property="og:description"
+      content="Flash ESP32 firmware over UART, verify it, and monitor serial output in one portable Windows app."
+    />
+    <meta
+      property="og:url"
+      content="https://tigramaan.github.io/esp32-flasher/"
+    />
+    <meta
+      property="og:image"
+      content="https://tigramaan.github.io/esp32-flasher/og-image.svg"
+    />
+    <meta property="og:image:alt" content="ESP32 Flasher for Windows" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="ESP32 Flasher — Portable ESP32 firmware tool for Windows"
+    />
+    <meta
+      name="twitter:description"
+      content="Flash, verify, restart, and monitor ESP32 boards from one portable Windows app."
+    />
+    <meta
+      name="twitter:image"
+      content="https://tigramaan.github.io/esp32-flasher/og-image.svg"
+    />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "ESP32 Flasher",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Windows 10, Windows 11",
+        "softwareVersion": "0.1.0",
+        "description": "A free portable Windows application for flashing ESP32 firmware over UART and monitoring serial output.",
+        "url": "https://tigramaan.github.io/esp32-flasher/",
+        "downloadUrl": "https://github.com/tigramaan/esp32-flasher/releases/latest/download/ESP32-Flasher-Windows-x64.exe",
+        "codeRepository": "https://github.com/tigramaan/esp32-flasher",
+        "license": "https://opensource.org/license/mit",
+        "isAccessibleForFree": true,
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "Portable Windows x64 executable",
+          "Single-BIN application updates",
+          "PlatformIO multi-segment factory flashing",
+          "Safe inactive-slot OTA updates",
+          "Automatic COM port selection",
+          "Integrated UART serial monitor",
+          "Production CSV reports",
+          "Russian and English interface"
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Does ESP32 Flasher require Python or esptool?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. The Windows release is a standalone portable application with the flashing backend built in."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I update an ESP32 with one BIN file?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Select a valid application BIN. ESP32 Flasher reads the connected device partition table and chooses a safe application target when one is available."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What files are used for factory flashing?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Choose a PlatformIO folder containing bootloader.bin, partitions.bin, and firmware.bin. boot_app0.bin is optional."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can the UART monitor be used without flashing?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Open the UART Monitor tab to connect passively, select a baud rate, disconnect, reconnect, or restart the board in normal boot mode."
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="ESP32 Flasher home">
+        <img src="./mark.svg" width="38" height="38" alt="" />
+        <span>ESP32 Flasher</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#features">Features</a>
+        <a href="#workflow">How it works</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://github.com/tigramaan/esp32-flasher">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top">
+        <div class="hero__copy">
+          <p class="eyebrow">Open-source ESP32 firmware tool for Windows</p>
+          <h1>Flash the board.<br />See the serial output.</h1>
+          <p class="hero__lead">
+            ESP32 Flasher combines safe firmware updates, fast factory
+            programming, progress diagnostics, and a UART monitor in one
+            portable Windows application.
+          </p>
+          <div class="hero__actions">
+            <a
+              class="button button--primary"
+              href="https://github.com/tigramaan/esp32-flasher/releases/latest/download/ESP32-Flasher-Windows-x64.exe"
+              >Download for Windows</a
+            >
+            <a
+              class="button button--secondary"
+              href="https://github.com/tigramaan/esp32-flasher"
+              >View source</a
+            >
+          </div>
+          <ul class="hero__facts" aria-label="Release facts">
+            <li>Portable x64 EXE</li>
+            <li>No Python</li>
+            <li>No installer</li>
+            <li>No telemetry</li>
+          </ul>
+        </div>
+
+        <div class="app-preview" aria-label="ESP32 Flasher application preview">
+          <div class="app-preview__bar">
+            <span><i></i> ESP32 Flasher</span>
+            <b>Ready</b>
+          </div>
+          <div class="app-preview__body">
+            <div class="preview-step">
+              <span>1</span>
+              <div>
+                <small>DEVICE</small>
+                <strong>ESP32-S3</strong>
+                <p>COM5 · USB Serial · Connected</p>
+              </div>
+              <b class="check">✓</b>
+            </div>
+            <div class="preview-step">
+              <span>2</span>
+              <div>
+                <small>FIRMWARE</small>
+                <strong>firmware.bin</strong>
+                <p>Application · ESP32-S3 · 1.24 MiB</p>
+              </div>
+              <b class="check">✓</b>
+            </div>
+            <div class="preview-progress">
+              <div><span>Flash verify complete</span><strong>100%</strong></div>
+              <i><b></b></i>
+            </div>
+            <div class="preview-terminal">
+              <div><span>PROCESS</span><b>UART MONITOR</b></div>
+              <pre>I (312) boot: ESP-IDF
+I (516) app: firmware started
+READY</pre>
+              <footer><span><i></i> Monitor connected</span><span>115200 baud</span></footer>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="proof" aria-label="Product summary">
+        <div><strong>9</strong><span>ESP32 image families</span></div>
+        <div><strong>921600</strong><span>fixed flash baud</span></div>
+        <div><strong>2</strong><span>update and production modes</span></div>
+        <div><strong>MIT</strong><span>free and open source</span></div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="section-heading">
+          <p class="eyebrow">Everything in one executable</p>
+          <h2>From a customer update to a production bench</h2>
+          <p>
+            The desktop workflow stays small while the guards remain explicit:
+            validate, connect, write, verify, restart, and monitor.
+          </p>
+        </div>
+        <div class="feature-grid">
+          <article>
+            <span class="feature-icon">01</span>
+            <h3>Single-BIN updates</h3>
+            <p>
+              Select any valid application BIN. The device partition table is
+              read before writing, so the application is placed in a real
+              application partition.
+            </p>
+          </article>
+          <article>
+            <span class="feature-icon">02</span>
+            <h3>Safe OTA switching</h3>
+            <p>
+              When an inactive OTA slot exists, the new image is written and
+              verified before boot metadata is switched.
+            </p>
+          </article>
+          <article>
+            <span class="feature-icon">03</span>
+            <h3>PlatformIO factory flash</h3>
+            <p>
+              Choose the normal build folder. ESP32 Flasher parses the
+              partition table and shows the computed multi-segment write map.
+            </p>
+          </article>
+          <article>
+            <span class="feature-icon">04</span>
+            <h3>Integrated UART monitor</h3>
+            <p>
+              Monitor without flashing, change baud rate, reconnect explicitly,
+              or restart the board in normal boot mode.
+            </p>
+          </article>
+          <article>
+            <span class="feature-icon">05</span>
+            <h3>Production sessions</h3>
+            <p>
+              Track passed and failed boards, use an optional ready marker, and
+              save one UTF-8 CSV row for every completed cycle.
+            </p>
+          </article>
+          <article>
+            <span class="feature-icon">06</span>
+            <h3>Local by design</h3>
+            <p>
+              Firmware and UART output stay on the computer. There is no
+              account, cloud firmware catalog, analytics, or telemetry.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section modes">
+        <div class="section-heading">
+          <p class="eyebrow">Two clear workflows</p>
+          <h2>Simple for customers. Repeatable for operators.</h2>
+        </div>
+        <div class="mode-grid">
+          <article class="mode-card mode-card--update">
+            <p>UPDATE MODE</p>
+            <h3>One file, one connected board</h3>
+            <ul>
+              <li>Choose one application BIN with any file name</li>
+              <li>Read the live device partition layout</li>
+              <li>Prefer an inactive OTA slot</li>
+              <li>Require confirmation for a one-slot overwrite</li>
+              <li>Open the UART monitor after verification</li>
+            </ul>
+          </article>
+          <article class="mode-card mode-card--factory">
+            <p>PRODUCTION MODE</p>
+            <h3>One build folder, many manual cycles</h3>
+            <ul>
+              <li>Use bootloader, partitions, and firmware BIN files</li>
+              <li>Compute and display the flash map</li>
+              <li>Flash at a fixed 921600 baud</li>
+              <li>Track passed and failed boards</li>
+              <li>Write local CSV reports after every cycle</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section workflow" id="workflow">
+        <div class="section-heading">
+          <p class="eyebrow">How it works</p>
+          <h2>A guarded path from USB cable to running firmware</h2>
+        </div>
+        <ol class="workflow-list">
+          <li>
+            <span>1</span>
+            <div><h3>Connect</h3><p>Plug in one ESP32 board and select its COM port.</p></div>
+          </li>
+          <li>
+            <span>2</span>
+            <div><h3>Choose</h3><p>Select an application BIN or a PlatformIO folder.</p></div>
+          </li>
+          <li>
+            <span>3</span>
+            <div><h3>Validate</h3><p>Check the ESP image, chip, partitions, ranges, and capacity.</p></div>
+          </li>
+          <li>
+            <span>4</span>
+            <div><h3>Flash and verify</h3><p>Write at 921600 baud and verify the flash contents.</p></div>
+          </li>
+          <li>
+            <span>5</span>
+            <div><h3>Restart and monitor</h3><p>Boot normally and stream UART output without forced line wrapping.</p></div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="section chips">
+        <div>
+          <p class="eyebrow">Image validation</p>
+          <h2>Built for the ESP32 family</h2>
+          <p>
+            The application reads the chip family from the firmware image and
+            compares it with the connected device before writing.
+          </p>
+        </div>
+        <ul aria-label="Supported ESP32 image families">
+          <li>ESP32</li>
+          <li>ESP32-C2</li>
+          <li>ESP32-C3</li>
+          <li>ESP32-C5</li>
+          <li>ESP32-C6</li>
+          <li>ESP32-H2</li>
+          <li>ESP32-P4</li>
+          <li>ESP32-S2</li>
+          <li>ESP32-S3</li>
+        </ul>
+      </section>
+
+      <section class="section safety">
+        <div class="section-heading">
+          <p class="eyebrow">Safety boundaries</p>
+          <h2>The destructive actions stay visible</h2>
+        </div>
+        <div class="safety-grid">
+          <p><strong>Before writing</strong>Images, chips, partitions, ranges, and flash capacity are checked.</p>
+          <p><strong>Before switching OTA</strong>The inactive application image is verified first.</p>
+          <p><strong>Before in-place update</strong>The user confirms the power-loss risk.</p>
+          <p><strong>Before full erase</strong>Production mode requires a separate confirmation.</p>
+        </div>
+      </section>
+
+      <section class="section faq" id="faq">
+        <div class="section-heading">
+          <p class="eyebrow">Frequently asked questions</p>
+          <h2>ESP32 Flasher, in plain terms</h2>
+        </div>
+        <div class="faq-list">
+          <details open>
+            <summary>Does ESP32 Flasher require Python or esptool?</summary>
+            <p>
+              No. The Windows release is a standalone portable application with
+              the flashing backend built in.
+            </p>
+          </details>
+          <details>
+            <summary>Can I update an ESP32 with one BIN file?</summary>
+            <p>
+              Yes. Select a valid application BIN. ESP32 Flasher reads the
+              connected device partition table and chooses a safe application
+              target when one is available.
+            </p>
+          </details>
+          <details>
+            <summary>What files are used for factory flashing?</summary>
+            <p>
+              Choose a PlatformIO folder containing <code>bootloader.bin</code>,
+              <code>partitions.bin</code>, and <code>firmware.bin</code>.
+              <code>boot_app0.bin</code> is optional.
+            </p>
+          </details>
+          <details>
+            <summary>Can the UART monitor be used without flashing?</summary>
+            <p>
+              Yes. Open the UART Monitor tab to connect passively, select a baud
+              rate, disconnect, reconnect, or restart the board in normal boot
+              mode.
+            </p>
+          </details>
+          <details>
+            <summary>Does the application upload firmware or serial data?</summary>
+            <p>
+              No. The desktop application has no telemetry or cloud backend.
+              Firmware, logs, reports, and UART output stay on the local
+              computer.
+            </p>
+          </details>
+          <details>
+            <summary>Why can Windows SmartScreen show a warning?</summary>
+            <p>
+              Public builds may be unsigned until Authenticode signing is
+              configured. You can verify the downloaded file with the SHA-256
+              checksum published next to each release.
+            </p>
+          </details>
+        </div>
+      </section>
+
+      <section class="download">
+        <div>
+          <p class="eyebrow">Portable and open source</p>
+          <h2>Start with one EXE.</h2>
+          <p>
+            Windows 10/11 x64 · MIT License · English and Russian interface
+          </p>
+        </div>
+        <div class="download__actions">
+          <a
+            class="button button--primary"
+            href="https://github.com/tigramaan/esp32-flasher/releases/latest/download/ESP32-Flasher-Windows-x64.exe"
+            >Download latest release</a
+          >
+          <a href="https://github.com/tigramaan/esp32-flasher/releases/latest"
+            >Release notes and checksums →</a
+          >
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="#top">
+          <img src="./mark.svg" width="32" height="32" alt="" />
+          <span>ESP32 Flasher</span>
+        </a>
+        <p>Portable ESP32 firmware flashing and UART monitoring for Windows.</p>
+      </div>
+      <div>
+        <a href="https://github.com/tigramaan/esp32-flasher">Source code</a>
+        <a href="https://github.com/tigramaan/esp32-flasher/releases">Releases</a>
+        <a href="https://github.com/tigramaan/esp32-flasher/blob/main/LICENSE">MIT License</a>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,30 +1,34 @@
-mod commands;
-mod flash;
-mod serial;
-mod state;
+mod application;
+mod ipc;
+mod platform;
 
-use state::ConnectionManager;
+use application::AppState;
 use std::sync::Arc;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let manager = Arc::new(ConnectionManager::new());
+    let state = Arc::new(AppState::new());
 
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .manage(manager)
+        .manage(state)
         .invoke_handler(tauri::generate_handler![
-            commands::list_ports,
-            commands::connect,
-            commands::disconnect,
-            commands::send,
-            commands::start_log,
-            commands::stop_log,
-            commands::flash_firmware,
-            commands::parse_idf_project,
-            commands::flash_idf_project,
-            commands::detect_chip,
+            ipc::system_locale,
+            ipc::list_devices,
+            ipc::start_serial_monitor,
+            ipc::validate_package,
+            ipc::data_directory,
+            ipc::set_data_directory,
+            ipc::get_settings,
+            ipc::update_settings,
+            ipc::start_factory_session,
+            ipc::factory_session,
+            ipc::start_update,
+            ipc::start_factory_flash,
+            ipc::send_serial,
+            ipc::reset_monitor,
+            ipc::disconnect_monitor,
         ])
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .expect("ESP32 Flasher failed to start");
 }

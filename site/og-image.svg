@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#07101d"/>
+      <stop offset="1" stop-color="#142841"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#53a7ff"/>
+      <stop offset="1" stop-color="#39d8a1"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1000" cy="40" r="330" fill="#287edb" opacity=".14"/>
+  <circle cx="90" cy="610" r="280" fill="#39d8a1" opacity=".08"/>
+  <g transform="translate(82 87)">
+    <rect width="98" height="98" rx="26" fill="#172d48"/>
+    <g transform="translate(18 18)" fill="none" stroke="url(#accent)" stroke-linecap="round" stroke-linejoin="round" stroke-width="6">
+      <rect x="12" y="12" width="38" height="38" rx="8"/>
+      <path d="M21 2v10m10-10v10m10-10v10M21 50v10m10-10v10m10-10v10M2 21h10M2 31h10M2 41h10m38-20h10M50 31h10M50 41h10"/>
+      <path d="m22 33 7 7 14-19"/>
+    </g>
+  </g>
+  <text x="82" y="274" fill="#f6f9fc" font-family="Segoe UI,Arial,sans-serif" font-size="78" font-weight="750">ESP32 Flasher</text>
+  <text x="82" y="354" fill="#9eb0c4" font-family="Segoe UI,Arial,sans-serif" font-size="38">Flash. Verify. Restart. Monitor.</text>
+  <g transform="translate(82 432)" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="650">
+    <rect width="197" height="56" rx="28" fill="#142841" stroke="#31506f"/>
+    <text x="29" y="37" fill="#cfe7ff">Portable Windows</text>
+    <rect x="216" width="155" height="56" rx="28" fill="#142841" stroke="#31506f"/>
+    <text x="245" y="37" fill="#cfe7ff">No Python</text>
+    <rect x="390" width="170" height="56" rx="28" fill="#142841" stroke="#31506f"/>
+    <text x="420" y="37" fill="#cfe7ff">Open source</text>
+  </g>
+</svg>

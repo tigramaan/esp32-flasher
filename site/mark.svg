@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ESP32 Flasher">
+  <defs>
+    <linearGradient id="g" x1="8" y1="8" x2="56" y2="56">
+      <stop stop-color="#53a7ff"/>
+      <stop offset="1" stop-color="#39d8a1"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="17" fill="#12243a"/>
+  <g fill="none" stroke="url(#g)" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
+    <rect x="18" y="18" width="28" height="28" rx="7"/>
+    <path d="M24 11v7m8-7v7m8-7v7M24 46v7m8-7v7m8-7v7M11 24h7m-7 8h7m-7 8h7m28-16h7m-7 8h7m-7 8h7"/>
+    <path d="m25 33 5 5 10-13"/>
+  </g>
+</svg>
