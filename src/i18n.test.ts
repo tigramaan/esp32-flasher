@@ -33,6 +33,22 @@ describe("Windows locale and UI localization", () => {
     });
   });
 
+  it("never exposes legacy JSON diagnostics in either interface language", () => {
+    for (const language of ["ru", "en"] as const) {
+      expect(
+        localizeBackendError(
+          {
+            code: "PACKAGE_INVALID",
+            message: "Некорректная прошивка",
+            detail: "firmware.json повреждён",
+            retryable: false,
+          },
+          language,
+        ).detail,
+      ).toBeUndefined();
+    }
+  });
+
   it("localizes operation progress and keeps dynamic values", () => {
     expect(localizeOperationText("Сегмент 2/3", "writing", "en")).toBe(
       "Segment 2/3",

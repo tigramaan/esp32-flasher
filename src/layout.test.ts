@@ -185,7 +185,7 @@ describe("responsive layout contract", () => {
     expect(text).toContain("partitions.bin → 0x8000");
     expect(text).toContain("firmware.bin → 0x10000");
     expect(document.body.textContent).toContain(
-      "Папка PlatformIO или application BIN",
+      "Один BIN-файл или папка PlatformIO",
     );
     expect(document.body.textContent).not.toContain("JSON");
   });

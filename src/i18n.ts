@@ -42,7 +42,7 @@ const EN = {
   "port.choose": "Choose a COM port",
   "port.refresh": "Refresh COM ports",
   "package.title": "Firmware",
-  "package.subtitle": "PlatformIO folder or application BIN",
+  "package.subtitle": "Single BIN or PlatformIO folder",
   "package.validating": "Checking firmware…",
   "package.folder_not_selected": "Folder is not selected",
   "package.file_not_selected": "BIN file is not selected",
@@ -193,7 +193,7 @@ const RU: Record<TranslationKey, string> = {
   "port.choose": "Выберите COM-порт",
   "port.refresh": "Обновить COM-порты",
   "package.title": "Прошивка",
-  "package.subtitle": "Папка PlatformIO или application BIN",
+  "package.subtitle": "Один BIN-файл или папка PlatformIO",
   "package.validating": "Проверяем прошивку…",
   "package.folder_not_selected": "Папка не выбрана",
   "package.file_not_selected": "BIN-файл не выбран",
@@ -343,7 +343,12 @@ export function localizeBackendError(
   error: BackendError,
   language: UiLanguage,
 ): BackendError {
-  if (language === "ru") return error;
+  if (language === "ru") {
+    return {
+      ...error,
+      detail: localizeDiagnosticDetail(error.detail, language),
+    };
+  }
   const t = createTranslator(language);
   const key = `error.${error.code}` as TranslationKey;
   const message = key in EN ? t(key) : t("error.unknown");
@@ -384,7 +389,8 @@ export function localizeDiagnosticDetail(
   detail: string | undefined,
   language: UiLanguage,
 ): string | undefined {
-  if (!detail || language === "ru" || !containsCyrillic(detail)) return detail;
+  if (!detail || /json/i.test(detail)) return undefined;
+  if (language === "ru" || !containsCyrillic(detail)) return detail;
   return undefined;
 }
 
