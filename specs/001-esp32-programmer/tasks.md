@@ -115,7 +115,7 @@
 - [x] T072 [US4] Implement passive monitor, bounded stop-and-wait and in-port normal reset
 - [x] T073 [US4] Implement auto-connect tab, explicit reconnect, baud persistence and flash lock UI
 - [x] T074 Add state/layout/storage/baud regressions and HIL-06 procedure
-- [ ] T075 Run full verification and rebuild the portable release
+- [x] T075 Run full verification and rebuild the portable release
 
 ## Phase 11 — Localization, public identity and release
 
@@ -131,9 +131,9 @@ metadata, and public repository settings.
 - [x] T078 [US5] Localize UI, dialogs, operation stages and stable backend errors in src/main.ts, src/state.ts and src/view.ts
 - [x] T079 [P] [US5] Add locale, fallback, English-leak and bilingual layout regressions in src/*.test.ts
 - [x] T080 [US5] Rename public product identity and portable binary metadata in package.json, Cargo.toml and src-tauri/
-- [ ] T081 [P] [US5] Write fully English README, release notes and repository metadata
-- [ ] T082 [P] [US5] Build responsive English GitHub Pages with SEO/GEO artifacts and validation
-- [ ] T083 [US5] Run automated verification, layout QA and portable release build
+- [x] T081 [P] [US5] Write fully English README, release notes and repository metadata
+- [x] T082 [P] [US5] Build responsive English GitHub Pages with SEO/GEO artifacts and validation
+- [x] T083 [US5] Run automated verification, layout QA and portable release build
 - [ ] T084 [US5] Publish source, Pages configuration and tagged GitHub Release to tigramaan/esp32-flasher
 
 ## Dependencies

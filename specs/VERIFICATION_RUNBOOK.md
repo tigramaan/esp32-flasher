@@ -98,21 +98,24 @@ cargo run -p programmer-pack -- validate D:\packages\nova-factory
 ## Known limitations
 
 - HIL требует физической платы и не считается пройденным автоматическими тестами.
-- Browser-based visual viewport matrix не выполнена в текущей среде: локальные
-  URL заблокированы enterprise policy. Responsive/layout contract покрыт Vitest,
-  EXE launch smoke пройден; визуальную матрицу выполнить вручную по шагу 6.
+- Production Pages viewport matrix ожидает ручного включения источника
+  `Settings → Pages → GitHub Actions`: доступ агента к GitHub Settings заблокирован
+  enterprise browser policy. До включения responsive/layout contract покрыт
+  Vitest и `npm run check:site`.
 - WebView2 является системной Windows dependency.
 - Неподписанный EXE может вызвать SmartScreen; CI signing опционален.
 - Direct-folder SHA-256 не подтверждает автора firmware.
 
 ## Checklist приёмки
 
-- [x] npm audit/test/build — PASS, 0 vulnerabilities, 17 Vitest (2026-07-29)
-- [x] cargo fmt/clippy/test — PASS, 49 tests (2026-07-29)
-- [x] portable release build — PASS, 11,864,576 bytes, SHA-256 `DB0D8A2E9A78A17EB627873500062DE297E4CC365E2904F053CC689409F87BC0` (2026-07-29)
-- [x] EXE launch smoke — PASS; process remained active and was cleanly stopped (2026-07-29)
-- [ ] manual visual viewport matrix 320/768/1440/3840 CSS px
-- [ ] HIL-01—HIL-05 — PASS на целевом оборудовании
+- [x] npm audit/test/build — PASS, 0 vulnerabilities, 26 Vitest (2026-07-29)
+- [x] cargo fmt/clippy/test — PASS, 51 tests (2026-07-29)
+- [x] `npm run check:site` — PASS, English-only content and SEO/GEO contracts verified (2026-07-29)
+- [x] portable release build — PASS, 12,022,784 bytes, SHA-256 `542A9D02071EC787508CD012133E59EA61EA266B41D0687AB8330C9008240CB8` (2026-07-29)
+- [x] EXE launch smoke — PASS; title `ESP32 Flasher`, process responsive and cleanly stopped (2026-07-29)
+- [x] app visual smoke — PASS на реальной ESP32/COM4: passive monitor, data stream, no line wrap, disconnect and production view (2026-07-29)
+- [ ] production Pages viewport matrix 320/390/768/1024/1440/1920/2560/3840 CSS px
+- [ ] HIL-01—HIL-06 — PASS на целевом оборудовании
 - [x] CSV и logs — автоматические проверки записи, счётчиков, sanitization и лимита PASS (2026-07-29)
-- [ ] standalone UART automated verification и portable rebuild
-- [x] direct-folder fixtures, release verification и traceability — PASS (требуется повторный прогон для 22/22 REQ)
+- [x] standalone UART automated verification и portable rebuild — PASS (2026-07-29)
+- [x] direct-folder fixtures, release verification и traceability — PASS, 27/27 REQ (2026-07-29)
