@@ -111,7 +111,7 @@ cargo run -p programmer-pack -- validate D:\packages\nova-factory
 - [x] npm audit/test/build — PASS, 0 vulnerabilities, 27 Vitest (2026-07-29)
 - [x] cargo fmt/clippy/test — PASS, 51 tests (2026-07-29)
 - [x] `npm run check:site` — PASS, English-only content and SEO/GEO contracts verified (2026-07-29)
-- [x] portable release build — PASS, 12,022,784 bytes, SHA-256 `121A93712A1C19C0292062DBEBA53F45840063630A02DEEA854581C460BD8C6B` (2026-07-29)
+- [x] portable release build — PASS, 12,022,784 bytes, SHA-256 `790B5242C7F7A5D4FBC80082901CC84D12EAA22A930F1D75CE75A8503484AF45` (2026-07-29)
 - [x] EXE launch smoke — PASS; title `ESP32 Flasher`, process responsive and cleanly stopped (2026-07-29)
 - [x] app visual smoke — PASS на реальной ESP32/COM4: passive monitor, data stream, no line wrap, disconnect and production view (2026-07-29)
 - [ ] production Pages viewport matrix 320/390/768/1024/1440/1920/2560/3840 CSS px

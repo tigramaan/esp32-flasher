@@ -343,12 +343,6 @@ export function localizeBackendError(
   error: BackendError,
   language: UiLanguage,
 ): BackendError {
-  if (language === "ru") {
-    return {
-      ...error,
-      detail: localizeDiagnosticDetail(error.detail, language),
-    };
-  }
   const t = createTranslator(language);
   const key = `error.${error.code}` as TranslationKey;
   const message = key in EN ? t(key) : t("error.unknown");

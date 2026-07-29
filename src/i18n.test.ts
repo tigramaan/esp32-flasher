@@ -35,17 +35,18 @@ describe("Windows locale and UI localization", () => {
 
   it("never exposes legacy JSON diagnostics in either interface language", () => {
     for (const language of ["ru", "en"] as const) {
-      expect(
-        localizeBackendError(
-          {
-            code: "PACKAGE_INVALID",
-            message: "Некорректная прошивка",
-            detail: "firmware.json повреждён",
-            retryable: false,
-          },
-          language,
-        ).detail,
-      ).toBeUndefined();
+      const localized = localizeBackendError(
+        {
+          code: "PACKAGE_INVALID",
+          message: "firmware.json повреждён",
+          detail: "firmware.json превышает допустимый размер",
+          retryable: false,
+        },
+        language,
+      );
+
+      expect(localized.message).not.toMatch(/json/i);
+      expect(localized.detail).toBeUndefined();
     }
   });
 
