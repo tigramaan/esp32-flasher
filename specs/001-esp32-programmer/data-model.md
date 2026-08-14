@@ -110,7 +110,7 @@ idle -> validating -> detecting -> connecting
 connecting -> erasing? -> writing -> verifying -> resetting -> monitoring
 monitoring -> passed | failed
 any active state -> failed
-passed | failed -> disconnected
+passed | failed | cancelled -> disconnected
 ```
 
 При пустом UART-маркере `passed` означает успешный flash verify и запуск монитора, а `boot_confirmed=false`. Переходы назад и параллельная active operation запрещены.

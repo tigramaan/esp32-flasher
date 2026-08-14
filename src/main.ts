@@ -1,5 +1,6 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import {
+  cancelActiveOperation,
   disconnectMonitor,
   getDataDirectory,
   getFactorySession,
@@ -75,7 +76,8 @@ class Esp32FlasherApp {
       window.clearInterval(this.pollTimer);
       this.pollTimer = undefined;
     }
-    await disconnectMonitor();
+    if (this.state.operationActive) await cancelActiveOperation();
+    else await disconnectMonitor();
   }
 
   private bind(): void {
@@ -84,7 +86,11 @@ class Esp32FlasherApp {
     this.view.onChoosePackage(() => void this.choosePackage());
     this.view.onPort((port) => this.selectPort(port));
     this.view.onRefresh(() => void this.pollPorts(true));
-    this.view.onStart(() => void this.startOperation());
+    this.view.onStart(() =>
+      void (this.state.operationActive
+        ? this.cancelOperation()
+        : this.startOperation()),
+    );
     this.view.onNewSession(() => void this.newFactorySession());
     this.view.onFullErase((enabled) => this.setFullErase(enabled));
     this.view.onFactoryMarker((marker) => void this.setFactoryMarker(marker));
@@ -332,6 +338,7 @@ class Esp32FlasherApp {
     this.state = {
       ...this.state,
       operationActive: true,
+      operationCancelling: false,
       progress: undefined,
       error: undefined,
       processLines: [],
@@ -399,6 +406,7 @@ class Esp32FlasherApp {
         this.state = {
           ...this.state,
           operationActive: false,
+          operationCancelling: false,
           monitorStatus: "disconnected",
         };
         if (
@@ -413,7 +421,10 @@ class Esp32FlasherApp {
         this.state = {
           ...this.state,
           error: normalized,
-          stage: "failed",
+          stage:
+            normalized.code === "OPERATION_CANCELLED"
+              ? "cancelled"
+              : "failed",
           statusMessage: normalized.message,
           monitorStatus: "disconnected",
         };
@@ -422,6 +433,7 @@ class Esp32FlasherApp {
       this.state = {
         ...this.state,
         operationActive: false,
+        operationCancelling: false,
         monitorStatus:
           this.state.monitorStatus === "busy"
             ? "disconnected"
@@ -429,6 +441,28 @@ class Esp32FlasherApp {
       };
       this.scheduleRender();
     }
+  }
+
+  private async cancelOperation(): Promise<void> {
+    if (!this.state.operationActive || this.state.operationCancelling) return;
+    this.state = {
+      ...this.state,
+      operationCancelling: true,
+      statusMessage: this.t("status.stopping"),
+    };
+    this.scheduleRender();
+    try {
+      await cancelActiveOperation();
+    } catch (error) {
+      const normalized = normalizeBackendError(error, this.language);
+      this.state = {
+        ...this.state,
+        operationCancelling: false,
+        error: normalized,
+        statusMessage: normalized.message,
+      };
+    }
+    this.scheduleRender();
   }
 
   private onOperationEvent(event: OperationEvent): void {

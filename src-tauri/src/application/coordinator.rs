@@ -5,13 +5,23 @@ use crate::platform::serial::MonitorHandle;
 use crate::platform::storage::PortableDataStore;
 use chrono::Utc;
 use programmer_core::{ErrorCode, OperationError, OperationStage, Result};
+use std::process::Child;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
+
+pub type SharedWorker = Arc<Mutex<Child>>;
+
+struct ActiveOperation {
+    operation_id: String,
+    cancelled: Arc<AtomicBool>,
+    worker: Option<SharedWorker>,
+}
 
 pub struct AppState {
     pub data: PortableDataStore,
     pub reports: FactoryReporter,
     operation_active: AtomicBool,
+    active_operation: Mutex<Option<ActiveOperation>>,
     monitor: Mutex<Option<MonitorHandle>>,
 }
 
@@ -21,12 +31,12 @@ impl AppState {
             data: PortableDataStore::discover(),
             reports: FactoryReporter::new(),
             operation_active: AtomicBool::new(false),
+            active_operation: Mutex::new(None),
             monitor: Mutex::new(None),
         }
     }
 
-    pub fn acquire(self: &Arc<Self>) -> Result<OperationLease> {
-        let mut monitor = self.monitor.lock().expect("monitor lock poisoned");
+    pub fn acquire(self: &Arc<Self>, operation_id: String) -> Result<OperationLease> {
         if self
             .operation_active
             .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
@@ -37,13 +47,83 @@ impl AppState {
                 "Другая операция уже выполняется",
             ));
         }
+        let cancelled = Arc::new(AtomicBool::new(false));
+        *self
+            .active_operation
+            .lock()
+            .expect("active operation lock poisoned") = Some(ActiveOperation {
+            operation_id: operation_id.clone(),
+            cancelled: cancelled.clone(),
+            worker: None,
+        });
         let lease = OperationLease {
             state: self.clone(),
+            operation_id,
+            cancelled,
         };
+        let mut monitor = self.monitor.lock().expect("monitor lock poisoned");
         if let Some(previous) = monitor.take() {
             previous.stop_and_wait()?;
         }
         Ok(lease)
+    }
+
+    pub fn register_worker(&self, operation_id: &str, worker: SharedWorker) -> Result<()> {
+        let cancelled = {
+            let mut active = self
+                .active_operation
+                .lock()
+                .expect("active operation lock poisoned");
+            let operation = active.as_mut().ok_or_else(|| {
+                OperationError::new(ErrorCode::InvalidState, "Активная операция не найдена")
+            })?;
+            if operation.operation_id != operation_id {
+                return Err(OperationError::new(
+                    ErrorCode::InvalidState,
+                    "Идентификатор flash worker не совпадает с активной операцией",
+                ));
+            }
+            operation.worker = Some(worker.clone());
+            operation.cancelled.load(Ordering::Acquire)
+        };
+        if cancelled {
+            terminate_worker(&worker);
+        }
+        Ok(())
+    }
+
+    pub fn unregister_worker(&self, operation_id: &str) {
+        let mut active = self
+            .active_operation
+            .lock()
+            .expect("active operation lock poisoned");
+        if let Some(operation) = active.as_mut() {
+            if operation.operation_id == operation_id {
+                operation.worker = None;
+            }
+        }
+    }
+
+    pub fn cancel_operation(&self) -> bool {
+        let worker = {
+            let active = self
+                .active_operation
+                .lock()
+                .expect("active operation lock poisoned");
+            let Some(operation) = active.as_ref() else {
+                return false;
+            };
+            operation.cancelled.store(true, Ordering::Release);
+            operation.worker.clone()
+        };
+        if let Some(worker) = worker {
+            terminate_worker(&worker);
+        }
+        let monitor = self.monitor.lock().expect("monitor lock poisoned").take();
+        if let Some(monitor) = monitor {
+            let _ = monitor.stop_and_wait();
+        }
+        true
     }
 
     pub fn install_monitor(&self, handle: MonitorHandle) -> Result<()> {
@@ -119,11 +199,77 @@ impl Default for AppState {
 
 pub struct OperationLease {
     state: Arc<AppState>,
+    operation_id: String,
+    cancelled: Arc<AtomicBool>,
+}
+
+impl OperationLease {
+    pub fn operation_id(&self) -> &str {
+        &self.operation_id
+    }
+
+    pub fn is_cancelled(&self) -> bool {
+        self.cancelled.load(Ordering::Acquire)
+    }
+
+    pub fn check_cancelled(&self) -> Result<()> {
+        if self.is_cancelled() {
+            Err(cancelled_error())
+        } else {
+            Ok(())
+        }
+    }
 }
 
 impl Drop for OperationLease {
     fn drop(&mut self) {
+        let worker = {
+            let mut active = self
+                .state
+                .active_operation
+                .lock()
+                .expect("active operation lock poisoned");
+            match active.as_ref() {
+                Some(operation) if operation.operation_id == self.operation_id => {
+                    active.take().and_then(|operation| operation.worker)
+                }
+                _ => None,
+            }
+        };
+        if let Some(worker) = worker {
+            terminate_worker(&worker);
+        }
         self.state.operation_active.store(false, Ordering::Release);
+    }
+}
+
+pub fn cancelled_error() -> OperationError {
+    OperationError::new(
+        ErrorCode::OperationCancelled,
+        "Операция остановлена пользователем",
+    )
+    .with_detail("Если остановка выполнена во время записи, содержимое flash может быть неполным")
+}
+
+fn terminate_worker(worker: &SharedWorker) {
+    let mut child = worker.lock().expect("flash worker lock poisoned");
+    if child.try_wait().ok().flatten().is_none() {
+        let _ = child.kill();
+    }
+}
+
+impl Drop for AppState {
+    fn drop(&mut self) {
+        if let Some(operation) = self
+            .active_operation
+            .get_mut()
+            .expect("active operation lock poisoned")
+            .take()
+        {
+            if let Some(worker) = operation.worker {
+                terminate_worker(&worker);
+            }
+        }
     }
 }
 
@@ -206,5 +352,28 @@ impl EventSink {
                 },
             });
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::AppState;
+    use programmer_core::ErrorCode;
+    use std::sync::Arc;
+
+    #[test]
+    fn cancellation_marks_the_active_lease_and_is_idempotent() {
+        let state = Arc::new(AppState::new());
+        let lease = state.acquire("operation-1".to_string()).unwrap();
+
+        assert!(state.cancel_operation());
+        assert!(state.cancel_operation());
+        assert_eq!(
+            lease.check_cancelled().unwrap_err().code,
+            ErrorCode::OperationCancelled
+        );
+
+        drop(lease);
+        assert!(!state.cancel_operation());
     }
 }

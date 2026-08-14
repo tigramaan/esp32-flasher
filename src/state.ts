@@ -39,6 +39,7 @@ export interface AppState {
   package?: PackageSummary;
   validatingPackage: boolean;
   operationActive: boolean;
+  operationCancelling: boolean;
   awaitingDisconnect: boolean;
   stage: OperationStage;
   statusMessage: string;
@@ -70,6 +71,7 @@ export function initialState(language: UiLanguage = "ru"): AppState {
     packagePath: "",
     validatingPackage: false,
     operationActive: false,
+    operationCancelling: false,
     awaitingDisconnect: false,
     stage: "idle",
     statusMessage: t("status.initial"),

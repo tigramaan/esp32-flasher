@@ -34,3 +34,64 @@ fn active_operation_can_fail() {
     state.fail().unwrap();
     assert_eq!(state.stage(), OperationStage::Failed);
 }
+
+#[test]
+fn every_active_stage_can_be_cancelled() {
+    for stage in [
+        OperationStage::Validating,
+        OperationStage::Detecting,
+        OperationStage::Connecting,
+        OperationStage::Erasing,
+        OperationStage::Writing,
+        OperationStage::Verifying,
+        OperationStage::Resetting,
+        OperationStage::Monitoring,
+    ] {
+        let mut state = OperationStateMachine::new();
+        state.transition(OperationStage::Validating).unwrap();
+        let path = match stage {
+            OperationStage::Validating => vec![],
+            OperationStage::Detecting => vec![OperationStage::Detecting],
+            OperationStage::Connecting => {
+                vec![OperationStage::Detecting, OperationStage::Connecting]
+            }
+            OperationStage::Erasing => vec![
+                OperationStage::Detecting,
+                OperationStage::Connecting,
+                OperationStage::Erasing,
+            ],
+            OperationStage::Writing => vec![
+                OperationStage::Detecting,
+                OperationStage::Connecting,
+                OperationStage::Writing,
+            ],
+            OperationStage::Verifying => vec![
+                OperationStage::Detecting,
+                OperationStage::Connecting,
+                OperationStage::Writing,
+                OperationStage::Verifying,
+            ],
+            OperationStage::Resetting => vec![
+                OperationStage::Detecting,
+                OperationStage::Connecting,
+                OperationStage::Writing,
+                OperationStage::Verifying,
+                OperationStage::Resetting,
+            ],
+            OperationStage::Monitoring => vec![
+                OperationStage::Detecting,
+                OperationStage::Connecting,
+                OperationStage::Writing,
+                OperationStage::Verifying,
+                OperationStage::Resetting,
+                OperationStage::Monitoring,
+            ],
+            _ => unreachable!(),
+        };
+        for next in path {
+            state.transition(next).unwrap();
+        }
+        state.transition(OperationStage::Cancelled).unwrap();
+        assert_eq!(state.stage(), OperationStage::Cancelled);
+    }
+}

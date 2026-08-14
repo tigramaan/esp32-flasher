@@ -155,6 +155,24 @@ describe("state guards", () => {
     expect(normalizeBackendError(state.error).code).toBe("BOOT_MARKER_TIMEOUT");
   });
 
+  it("keeps cancellation as a distinct terminal state", () => {
+    const state = applyOperationEvent(initialState(), {
+      type: "state",
+      operation_id: "cancelled-operation",
+      state: "cancelled",
+      message: "Операция остановлена пользователем",
+      error: {
+        code: "OPERATION_CANCELLED",
+        message: "Операция остановлена пользователем",
+        retryable: false,
+      },
+    });
+
+    expect(state.stage).toBe("cancelled");
+    expect(state.error?.code).toBe("OPERATION_CANCELLED");
+    expect(state.processLines.at(-1)).toContain("[CANCELLED]");
+  });
+
   it("tracks direct monitor data and explicit disconnect state", () => {
     let state = {
       ...initialState(),

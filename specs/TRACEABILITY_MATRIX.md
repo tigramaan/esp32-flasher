@@ -29,6 +29,9 @@
 | REQ-025 | ESP32 Flasher identity across app, EXE, metadata and public pages | T080–T082 | config/source audit; release smoke |
 | REQ-026 | English public repository, MIT, Windows workflow, portable EXE + SHA-256 | T081, T083–T084 | repository/release inspection; workflow |
 | REQ-027 | responsive Pages with factual SEO/GEO metadata and latest-release link | T082–T084 | site validator; viewport matrix; deployed Pages smoke |
+| REQ-028 | active STOP terminates isolated flash worker, releases COM and unlocks UI | T085–T092 | coordinator/worker/UI regressions; HIL-07 |
+| REQ-029 | three 20-second connect attempts; diagnostic counter; no retry after mutation; 5-minute flash timeout | T085–T092 | worker policy tests; operation log inspection; HIL-07 |
+| REQ-030 | varied Windows DTR/RTS profiles before mutation, with profile diagnostics | T093–T097 | reset-profile policy test; opt-in hardware connect test; HIL-08 |
 
-После выполнения T076–T084 все требования имеют реализацию и процедуру. Аппаратные строки требуют отдельного
+После выполнения T085–T097 требования отмены и восстановления имеют реализацию и процедуру. Аппаратные строки требуют отдельного
 подписанного протокола выполнения на реальном стенде.

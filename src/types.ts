@@ -12,6 +12,7 @@ export type OperationStage =
   | "monitoring"
   | "passed"
   | "failed"
+  | "cancelled"
   | "disconnected";
 
 export interface BackendError {

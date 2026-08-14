@@ -29,6 +29,8 @@ fn every_error_code_has_uppercase_public_name() {
         ErrorCode::DeviceDisconnected,
         ErrorCode::DataDirectoryUnwritable,
         ErrorCode::OperationInProgress,
+        ErrorCode::OperationCancelled,
+        ErrorCode::OperationTimeout,
         ErrorCode::InvalidState,
         ErrorCode::InPlaceConfirmationRequired,
         ErrorCode::IoError,

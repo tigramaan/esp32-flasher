@@ -12,6 +12,8 @@ Public CLI: [CLI contract](../../specs/001-esp32-programmer/contracts/cli.md).
 - portable settings: `schema_version: 1`;
 - IPC/CLI: documentation contract v1, packaged with app version `0.1.0`.
 - UI locale: `ru`/`en`; `system_locale` is additive IPC v1.
+- cancellation: additive `cancel_operation`; stable `OPERATION_CANCELLED` and
+  `OPERATION_TIMEOUT` codes; internal same-EXE worker protocol v1.
 
 ## Compatibility
 

@@ -252,9 +252,14 @@ export class Esp32FlasherView {
       : "";
 
     const primary = this.refs.primaryAction as HTMLButtonElement;
-    primary.disabled = !canStart(state);
+    primary.disabled = state.operationActive
+      ? state.operationCancelling
+      : !canStart(state);
+    primary.classList.toggle("primary-action--stop", state.operationActive);
     primary.textContent = state.operationActive
-      ? this.t("operation.running")
+      ? state.operationCancelling
+        ? this.t("operation.stopping")
+        : this.t("operation.stop")
       : state.awaitingDisconnect
         ? this.t("operation.disconnect")
         : state.mode === "factory"

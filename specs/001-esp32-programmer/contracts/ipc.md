@@ -28,6 +28,7 @@
 | `factory_session` | — | `FactorySessionSummary?` |
 | `start_update` | `{request, on_event: Channel}` | final `OperationResult` |
 | `start_factory_flash` | `{request, on_event: Channel}` | final `OperationResult` |
+| `cancel_operation` | — | `true`, если активной операции отправлена отмена; иначе `false` |
 | `send_serial` | `{data}` | `null`; только при активном monitor |
 | `reset_monitor` | — | `null`; normal boot reset через открытый monitor |
 | `disconnect_monitor` | — | `null`; ждёт освобождения COM до 2 секунд |
@@ -63,6 +64,30 @@
 Обе flash-команды отклоняют concurrent operation. Команда выполняется вне UI
 thread и возвращает result после flash verify и, если marker настроен, после
 marker/timeout.
+
+Во время flash-команды `cancel_operation` идемпотентно отмечает операцию как
+отменённую и завершает активный изолированный worker. Новые serial/flash действия
+после отмены не начинаются. Стабильные коды: `OPERATION_CANCELLED` для ручной
+остановки и `OPERATION_TIMEOUT` для исчерпания stage timeout. Состояние канала
+`cancelled` является терминальным и никогда не сопровождается `success=true`.
+
+ROM connect выполняется максимум три раза. Каждая попытка ограничена 20
+секундами; `PORT_BUSY`, `FLASH_CONNECT_FAILED` и connect-timeout повторяются
+только пока не начались erase/write. Номер попытки и причина передаются через
+`log`. Любой timeout после начала изменения flash завершает операцию без retry.
+
+## Internal flash worker protocol v1
+
+Родитель запускает текущий EXE с закрытым аргументом
+`--esp32-flasher-worker-v1`, передаёт один `WorkerRequest` через stdin и читает
+JSON-lines `WorkerMessage` через stdout. Допустимые сообщения: `log`, `stage`,
+`progress`, `mutation_started`, `complete`, `failed`. Unknown/повреждённый JSON
+завершает попытку `INTERNAL_ERROR`; worker не принимает произвольные команды,
+пути или firmware по сети.
+
+`mutation_started` является необратимой границей retry. Supervisor может
+завершить worker на STOP, connect timeout 20 секунд или flash-stage timeout пять
+минут. Один worker владеет не более чем одним COM handle и одной платой.
 
 `list_devices` никогда не открывает COM-порт. Chip/MAC/flash size определяются
 flash-командой после явного действия пользователя. Ошибка подключения должна

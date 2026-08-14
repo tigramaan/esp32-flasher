@@ -1,6 +1,6 @@
 use crate::application::{DetectedDevice, OperationProgress};
 use crate::platform::serial::reset_port_for_normal_boot;
-use espflash::connection::{Connection, ResetAfterOperation, ResetBeforeOperation};
+use espflash::connection::{Connection, Port, ResetAfterOperation, ResetBeforeOperation};
 use espflash::flasher::Flasher;
 use espflash::image_format::Segment;
 use espflash::target::ProgressCallbacks;
@@ -8,15 +8,60 @@ use programmer_core::{
     parse_partition_table, ChipFamily, ErrorCode, OperationError, OperationStage, PartitionEntry,
     Result, FLASH_BAUD,
 };
-use serialport::SerialPortType;
+use serialport::{SerialPort, SerialPortType};
 use std::borrow::Cow;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::thread::sleep;
 use std::time::Duration;
 use tempfile::NamedTempFile;
 
 const RESET_AFTER_OPERATION: ResetAfterOperation = ResetAfterOperation::HardReset;
+const ESPTOOL_RESET_DELAY: Duration = Duration::from_millis(50);
+const ESPTOOL_EXTENDED_RESET_DELAY: Duration = Duration::from_millis(550);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ConnectResetProfile {
+    EsptoolClassic { release_delay: Duration },
+    EspflashFallback,
+}
+
+fn connect_reset_profile(attempt: usize) -> ConnectResetProfile {
+    match attempt {
+        1 => ConnectResetProfile::EsptoolClassic {
+            release_delay: ESPTOOL_RESET_DELAY,
+        },
+        2 => ConnectResetProfile::EsptoolClassic {
+            release_delay: ESPTOOL_EXTENDED_RESET_DELAY,
+        },
+        _ => ConnectResetProfile::EspflashFallback,
+    }
+}
+
+fn esptool_classic_reset(
+    serial: &mut Port,
+    release_delay: Duration,
+) -> std::result::Result<(), serialport::Error> {
+    // Match esptool.py on Windows, including its DTR refresh after every RTS change.
+    serial.write_data_terminal_ready(false)?; // IO0 = HIGH
+    set_rts_with_dtr_refresh(serial, true, false)?; // EN = LOW
+    sleep(Duration::from_millis(100));
+    serial.write_data_terminal_ready(true)?; // IO0 = LOW
+    set_rts_with_dtr_refresh(serial, false, true)?; // EN = HIGH
+    sleep(release_delay);
+    serial.write_data_terminal_ready(false)?; // IO0 = HIGH
+    Ok(())
+}
+
+fn set_rts_with_dtr_refresh(
+    serial: &mut Port,
+    rts: bool,
+    current_dtr: bool,
+) -> std::result::Result<(), serialport::Error> {
+    serial.write_request_to_send(rts)?;
+    serial.write_data_terminal_ready(current_dtr)
+}
 
 #[derive(Debug, Clone)]
 pub struct OwnedFlashSegment {
@@ -27,12 +72,18 @@ pub struct OwnedFlashSegment {
 pub struct EspSession {
     flasher: Flasher,
     device: DetectedDevice,
+    reset_on_drop: bool,
 }
 
 impl EspSession {
-    pub fn connect(port_name: &str) -> Result<Self> {
+    pub fn connect_with_diagnostics(
+        port_name: &str,
+        connect_attempt: usize,
+        diagnostic: Arc<dyn Fn(&str) + Send + Sync>,
+    ) -> Result<Self> {
         let port_info = find_usb_port_info(port_name)?;
-        let serial = serialport::new(port_name, 115_200)
+        diagnostic("Открытие COM-порта на 115200 baud");
+        let mut serial = serialport::new(port_name, 115_200)
             .timeout(Duration::from_secs(3))
             .open_native()
             .map_err(|error| {
@@ -43,13 +94,36 @@ impl EspSession {
                 .with_detail(error.to_string())
                 .retryable(true)
             })?;
+        let reset_profile = connect_reset_profile(connect_attempt);
+        let before_operation = match reset_profile {
+            ConnectResetProfile::EsptoolClassic { release_delay } => {
+                diagnostic(&format!(
+                    "COM-порт открыт; esptool-compatible reset в ROM bootloader ({} мс)",
+                    release_delay.as_millis()
+                ));
+                esptool_classic_reset(&mut serial, release_delay).map_err(|error| {
+                    OperationError::new(
+                        ErrorCode::FlashConnectFailed,
+                        "Не удалось выполнить reset ESP32 в bootloader",
+                    )
+                    .with_detail(error.to_string())
+                    .retryable(true)
+                })?;
+                ResetBeforeOperation::NoReset
+            }
+            ConnectResetProfile::EspflashFallback => {
+                diagnostic("COM-порт открыт; резервная последовательность reset в ROM bootloader");
+                ResetBeforeOperation::DefaultReset
+            }
+        };
         let connection = Connection::new(
             serial,
             port_info,
             RESET_AFTER_OPERATION,
-            ResetBeforeOperation::DefaultReset,
+            before_operation,
             115_200,
         );
+        diagnostic("ROM handshake, определение чипа и загрузка flash stub");
         let mut flasher = match Flasher::connect(
             connection,
             true,
@@ -77,6 +151,7 @@ impl EspSession {
                 .retryable(true));
             }
         };
+        diagnostic("ROM bootloader отвечает; чтение параметров flash и MAC");
         let info = match flasher.device_info() {
             Ok(info) => info,
             Err(error) => {
@@ -102,7 +177,12 @@ impl EspSession {
             mac: info.mac_address.unwrap_or_else(|| "недоступен".to_string()),
             flash_size_bytes: u64::from(info.flash_size.size()),
         };
-        Ok(Self { flasher, device })
+        diagnostic("ESP32 определена; соединение готово к операции");
+        Ok(Self {
+            flasher,
+            device,
+            reset_on_drop: true,
+        })
     }
 
     pub fn device(&self) -> &DetectedDevice {
@@ -111,6 +191,11 @@ impl EspSession {
 
     pub fn chip(&self) -> Result<ChipFamily> {
         ChipFamily::try_from(self.device.chip.as_str())
+    }
+
+    pub fn close_for_monitor(mut self) -> DetectedDevice {
+        self.reset_on_drop = false;
+        self.device.clone()
     }
 
     pub fn read_region(&mut self, address: u32, size: u32) -> Result<Vec<u8>> {
@@ -184,8 +269,10 @@ impl EspSession {
 
 impl Drop for EspSession {
     fn drop(&mut self) {
-        let chip = self.flasher.chip();
-        let _ = self.flasher.connection().reset_after(true, chip);
+        if self.reset_on_drop {
+            let chip = self.flasher.chip();
+            let _ = self.flasher.connection().reset_after(true, chip);
+        }
     }
 }
 
@@ -365,8 +452,9 @@ fn discover_partition_table_with(
 #[cfg(test)]
 mod tests {
     use super::{
-        discover_partition_table_with, OperationProgress, ProgressBridge, ProgressCallbacks,
-        RESET_AFTER_OPERATION,
+        connect_reset_profile, discover_partition_table_with, ConnectResetProfile,
+        OperationProgress, ProgressBridge, ProgressCallbacks, ESPTOOL_EXTENDED_RESET_DELAY,
+        ESPTOOL_RESET_DELAY, RESET_AFTER_OPERATION,
     };
     use espflash::connection::ResetAfterOperation;
     use programmer_core::{ErrorCode, OperationError};
@@ -448,5 +536,40 @@ mod tests {
     #[test]
     fn every_completed_connection_defaults_to_normal_boot_reset() {
         assert_eq!(RESET_AFTER_OPERATION, ResetAfterOperation::HardReset);
+    }
+
+    #[test]
+    fn connection_retries_use_distinct_reset_profiles() {
+        assert_eq!(
+            connect_reset_profile(1),
+            ConnectResetProfile::EsptoolClassic {
+                release_delay: ESPTOOL_RESET_DELAY
+            }
+        );
+        assert_eq!(
+            connect_reset_profile(2),
+            ConnectResetProfile::EsptoolClassic {
+                release_delay: ESPTOOL_EXTENDED_RESET_DELAY
+            }
+        );
+        assert_eq!(
+            connect_reset_profile(3),
+            ConnectResetProfile::EspflashFallback
+        );
+    }
+
+    #[test]
+    #[ignore = "requires a connected ESP32 and ESP32_FLASHER_HIL_PORT"]
+    fn hil_esptool_reset_profiles_connect_and_read_device() {
+        let port = std::env::var("ESP32_FLASHER_HIL_PORT")
+            .expect("set ESP32_FLASHER_HIL_PORT to the test COM port");
+        for attempt in [1, 2] {
+            let diagnostics =
+                Arc::new(move |message: &str| println!("profile {attempt}: {message}"));
+            let session = super::EspSession::connect_with_diagnostics(&port, attempt, diagnostics)
+                .expect("esptool-compatible reset must connect to the test board");
+            assert_eq!(session.device().port, port);
+            assert!(!session.device().chip.is_empty());
+        }
     }
 }

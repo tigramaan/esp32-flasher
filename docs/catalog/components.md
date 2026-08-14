@@ -2,11 +2,12 @@
 
 | Компонент | Назначение | Public interface | Ошибки | REQ / тесты |
 |---|---|---|---|---|
-| ESP32 Flasher UI | RU/EN update/factory UX | user actions + rendered state | локализует `OperationError` по коду | REQ-002/008/011/013/023–025; Vitest |
+| ESP32 Flasher UI | RU/EN update/factory UX + STOP | user actions + rendered state | локализует `OperationError` по коду | REQ-002/008/011/013/023–025/028; Vitest |
 | Tauri IPC | desktop boundary | commands, DTO, Channel | serialized stable codes | REQ-003/008/015; build/contracts |
 | programmer-core | image/partition/OTA rules | Rust exports | fail-fast guards | REQ-004/007/009/010/017–019; core tests |
 | Firmware folder adapter | direct/legacy inspection | internal `LoadedPackage` | incomplete/ambiguous/path errors | REQ-004/017/020; unit tests |
 | ESP adapter | explicit-operation ROM bootloader | connect/read/write/erase/reset/discover table | connect/write/verify/partition codes; normal-boot recovery | REQ-003/005/006/018; reset-policy test/HIL |
+| Flash worker supervisor | isolated same-EXE flash I/O | typed JSON-lines worker v1 + STOP | cancellation/timeout/worker crash | REQ-028/029; policy/coordinator tests/HIL-07 |
 | UART adapter | standalone/flash monitor, marker, normal reset | passive/reset start, send/reset/stop-and-wait | busy/disconnect/timeout | REQ-008/009/022; marker/state/HIL |
 | Portable store | settings/logs/reports | local filesystem | data/io codes | REQ-011/012; storage/report tests |
 | programmer-pack | optional legacy package generation | CLI v1 | deterministic exit != 0 | REQ-014; integration tests |

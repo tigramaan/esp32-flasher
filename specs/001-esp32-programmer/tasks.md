@@ -136,6 +136,39 @@ metadata, and public repository settings.
 - [x] T083 [US5] Run automated verification, layout QA and portable release build
 - [ ] T084 [US5] Publish source, Pages configuration and tagged GitHub Release to tigramaan/esp32-flasher
 
+## Phase 12 — Cancellable flash and bounded recovery
+
+**Goal**: исключить бессрочную блокировку приложения при сбое USB-UART и дать
+оператору явную остановку с безопасным ограниченным retry подключения.
+
+**Independent test**: симулировать зависший connect worker, retryable connect
+error, STOP на connecting/writing/monitoring и нормальный flash; UI и COM
+освобождаются, retry не выполняется после начала flash mutation.
+
+- [x] T085 [US6] Define STOP, retry, timeout and worker isolation contracts in specs/ and docs/adr/
+- [x] T086 [US6] Add cancellation/timeout error and operation-state contracts in crates/programmer-core/
+- [x] T087 [US6] Extract device flash workflow into a same-EXE worker protocol in src-tauri/src/application/
+- [x] T088 [US6] Implement worker supervisor, stage timeouts, three connect attempts and process termination in src-tauri/src/platform/
+- [x] T089 [US6] Add cancel_operation IPC and operation lifecycle coordination in src-tauri/src/ipc/ and application/coordinator.rs
+- [x] T090 [US6] Implement bilingual STOP/cancelling UI and terminal status in src/
+- [x] T091 [P] [US6] Add Rust retry/cancellation and TypeScript layout/state regressions
+- [x] T092 [US6] Update traceability, verification and HIL runbooks; build portable EXE
+
+## Phase 13 — Windows bootloader reset compatibility
+
+**Goal**: обеспечить стабильный автоматический вход CH340-плат в ROM bootloader,
+если официальный esptool подключается, а штатный reset espflash не срабатывает.
+
+**Independent test**: на проблемной плате выполнить безопасный HIL connect двумя
+esptool-compatible профилями, прочитать chip/flash/MAC без записи и затем запустить
+обычный factory workflow.
+
+- [x] T093 [US6] Define varied reset retry contract and decision in specs/ and ADR-0007
+- [x] T094 [US6] Propagate bounded connect attempt number through the same-EXE worker envelope
+- [x] T095 [US6] Implement esptool-compatible 50/550 ms Windows DTR/RTS profiles and espflash fallback
+- [x] T096 [P] [US6] Add reset-profile policy regression and opt-in hardware connect test
+- [x] T097 [US6] Update verification artifacts and build the replacement portable EXE
+
 ## Dependencies
 
 ```text
