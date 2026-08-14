@@ -9,7 +9,8 @@
 | `application::coordinator` | application | storage/report/monitor | internal |
 | `application::update` | application | core + platform contracts | internal |
 | `application::factory` | application | core + platform contracts | internal |
-| `platform::esp` | I/O | espflash | internal replaceable |
+| `application::worker` | application/platform boundary | same-EXE child process + JSON-lines | cancellable internal v1 |
+| `platform::esp` | I/O | espflash + serialport reset profiles | internal replaceable; esptool-compatible Windows reset |
 | `platform::serial` | I/O | serialport | passive/reset modes, bounded ownership handoff |
 | `platform::package` | I/O | filesystem + core | direct PlatformIO/standalone/legacy |
 | `platform::storage/logging/reports` | I/O | filesystem/csv | internal |

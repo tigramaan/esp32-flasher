@@ -82,6 +82,10 @@ export function startFactoryFlash(
   return invoke("start_factory_flash", { request, onEvent: channel });
 }
 
+export function cancelActiveOperation(): Promise<boolean> {
+  return invoke("cancel_operation");
+}
+
 export function sendSerial(data: string): Promise<void> {
   return invoke("send_serial", { data });
 }

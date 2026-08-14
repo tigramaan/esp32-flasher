@@ -15,6 +15,7 @@ pub enum OperationStage {
     Monitoring,
     Passed,
     Failed,
+    Cancelled,
     Disconnected,
 }
 
@@ -97,8 +98,17 @@ fn is_allowed(current: OperationStage, next: OperationStage) -> bool {
             | (Resetting, Monitoring)
             | (Monitoring, Passed)
             | (Monitoring, Failed)
+            | (Validating, Cancelled)
+            | (Detecting, Cancelled)
+            | (Connecting, Cancelled)
+            | (Erasing, Cancelled)
+            | (Writing, Cancelled)
+            | (Verifying, Cancelled)
+            | (Resetting, Cancelled)
+            | (Monitoring, Cancelled)
             | (Passed, Disconnected)
             | (Failed, Disconnected)
+            | (Cancelled, Disconnected)
             | (Disconnected, Idle)
     )
 }

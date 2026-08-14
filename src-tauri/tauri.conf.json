@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/nicedoc/tauri/refs/heads/dev/crates/tauri-config-schema/schema.json",
   "productName": "ESP32 Flasher",
   "mainBinaryName": "ESP32 Flasher",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "identifier": "com.tigramaan.esp32flasher",
   "build": {
     "frontendDist": "../dist",

@@ -17,6 +17,10 @@
   Release с SHA-256 и англоязычный GitHub Pages.
 - **Performance**: flash baud 921600 без fallback; UI получает ограниченный поток прогресс-событий; не более 10 000 UART-строк в DOM.
 - **Constraints**: одна плата и одна операция одновременно; package input считается недоверенным.
+- **Fault containment**: потенциально зависающие serial/espflash вызовы выполняются
+  в изолированном экземпляре того же portable EXE; supervisor ограничивает
+  подключение 20 секундами, делает до трёх безопасных попыток и завершает worker
+  по STOP/таймауту.
 
 ## Architecture Gates
 
@@ -65,6 +69,10 @@ Use cases:
 - `FirmwareFolderStore`: canonical paths, bounded reads, распознавание PlatformIO/standalone/legacy.
 - `PortableDataStore`: atomic settings, log rotation and CSV flush.
 - `TauriEventSink`: typed progress/log/serial events.
+- `FlashWorkerSupervisor`: запускает тот же EXE в скрытом worker-режиме,
+  принимает типизированный поток событий, применяет stage-aware таймауты,
+  ограниченный retry и принудительно освобождает serial handles завершением
+  дочернего процесса.
 
 ### UI
 
@@ -75,6 +83,7 @@ Use cases:
 - package card;
 - компактную карту обнаруженных BIN и адресов;
 - primary action/progress;
+- primary action превращается в красную кнопку «СТОП» на время операции;
 - factory counters и advanced erase;
 - process log и UART terminal;
 - modal выбора при нескольких устройствах и подтверждение опасных действий.
@@ -125,6 +134,11 @@ tests/hil/                      hardware procedures
 8. Add native locale detection, RU/EN UI boundary and product rebranding.
 9. Add English public documentation, Pages, SEO/GEO metadata and release.
 10. Run static, unit, integration, UI, site, build and HIL-ready verification.
+11. Isolate flash I/O in a cancellable worker process; add bounded connect retry,
+    stage timeouts and STOP UX.
+12. Propagate the retry number into the worker and use distinct Windows reset
+    profiles: esptool-compatible 50/550 ms sequences followed by the espflash
+    fallback; verify both safe profiles on CH340 hardware before release.
 
 ## Risks and Mitigations
 
@@ -144,6 +158,10 @@ tests/hil/                      hardware procedures
   automated site checks keep README/Pages aligned with published artifacts.
 - **Unsigned build triggers SmartScreen**: release notes state this limitation;
   optional Authenticode remains available through repository secrets.
+- **Зависание драйвера CH340/CP210x**: serial/flash выполняется в дочернем
+  процессе; STOP или stage timeout завершает worker и тем самым гарантированно
+  закрывает принадлежащий ему COM handle. Retry не выполняется после начала
+  erase/write, чтобы не скрывать потенциально частично записанное состояние.
 
 ## Post-design Gate
 

@@ -2,6 +2,7 @@ pub mod coordinator;
 pub mod factory;
 pub mod models;
 pub mod update;
+pub mod worker;
 
 pub use coordinator::{AppState, EventSink};
 pub use factory::run_factory_flash;

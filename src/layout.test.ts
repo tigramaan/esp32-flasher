@@ -138,6 +138,28 @@ describe("responsive layout contract", () => {
     expect(
       document.querySelector('[data-ref="monitorFooterStatus"]')?.textContent,
     ).toBe("Занят прошивкой");
+    const stop = document.querySelector<HTMLButtonElement>(
+      '[data-ref="primaryAction"]',
+    );
+    expect(stop?.textContent).toBe("СТОП");
+    expect(stop?.disabled).toBe(false);
+    expect(stop?.classList).toContain("primary-action--stop");
+  });
+
+  it("disables STOP only while cancellation is being delivered", () => {
+    const view = new Esp32FlasherView(document.querySelector("#app"));
+    view.render({
+      ...initialState(),
+      operationActive: true,
+      operationCancelling: true,
+      stage: "connecting",
+      monitorStatus: "busy",
+    });
+    const stop = document.querySelector<HTMLButtonElement>(
+      '[data-ref="primaryAction"]',
+    );
+    expect(stop?.textContent).toBe("Остановка…");
+    expect(stop?.disabled).toBe(true);
   });
 
   it("renders the computed PlatformIO flash map with clear user-facing copy", () => {

@@ -7,6 +7,9 @@ use std::sync::Arc;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    if std::env::args().any(|argument| argument == application::worker::WORKER_ARGUMENT) {
+        std::process::exit(application::worker::run_worker_from_stdio());
+    }
     let state = Arc::new(AppState::new());
 
     tauri::Builder::default()
@@ -25,6 +28,7 @@ pub fn run() {
             ipc::factory_session,
             ipc::start_update,
             ipc::start_factory_flash,
+            ipc::cancel_operation,
             ipc::send_serial,
             ipc::reset_monitor,
             ipc::disconnect_monitor,

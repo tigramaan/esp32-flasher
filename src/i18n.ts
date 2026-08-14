@@ -30,6 +30,7 @@ const EN = {
   "status.package_ready": "{name} firmware is ready",
   "status.disconnect_for_next": "Disconnect the flashed board for the next cycle",
   "status.monitor_disconnected": "UART monitor disconnected",
+  "status.stopping": "Stopping the operation and releasing the COM port…",
   "device.title": "Device",
   "device.subtitle": "Automatic ESP32 detection",
   "device.detecting": "Detecting device…",
@@ -69,6 +70,8 @@ const EN = {
   "factory.session_started": "New production session started",
   "operation.waiting": "Waiting to start",
   "operation.running": "Working…",
+  "operation.stop": "STOP",
+  "operation.stopping": "Stopping…",
   "operation.disconnect": "Disconnect the board",
   "operation.flash": "Flash board",
   "operation.update": "Update firmware",
@@ -111,10 +114,15 @@ const EN = {
   "stage.monitoring": "UART",
   "stage.passed": "Complete",
   "stage.failed": "Error",
+  "stage.cancelled": "Stopped",
   "stage.disconnected": "Disconnected",
   "progress.validating": "Checking firmware",
   "progress.detecting": "Detecting the connected ESP32",
   "progress.connecting": "Connecting to the ROM bootloader",
+  "progress.connect_attempt": "Connecting to the ROM bootloader — attempt {current}/{total}",
+  "progress.connect_attempt_started": "Attempt {current}/{total} started; timeout {seconds} seconds",
+  "progress.connect_attempt_failed": "Attempt {current}/{total} failed; connection will be retried if safe",
+  "progress.connect_retry": "Retrying the connection in 1 second",
   "progress.erasing": "Erasing flash — do not disconnect power",
   "progress.writing": "Writing firmware at 921600 baud",
   "progress.verifying": "Verifying written data",
@@ -122,6 +130,7 @@ const EN = {
   "progress.monitoring": "UART monitor is open",
   "progress.passed": "Firmware written and verified",
   "progress.failed": "Operation failed",
+  "progress.cancelled": "Operation stopped",
   "progress.disconnected": "Device disconnected",
   "progress.segment": "Segment {current}/{total}",
   "progress.write_address": "Writing {bytes} bytes at {address}",
@@ -149,6 +158,8 @@ const EN = {
   "error.DEVICE_DISCONNECTED": "The ESP32 device was disconnected",
   "error.DATA_DIRECTORY_UNWRITABLE": "The working folder is not writable",
   "error.OPERATION_IN_PROGRESS": "Another operation is already running",
+  "error.OPERATION_CANCELLED": "The operation was stopped",
+  "error.OPERATION_TIMEOUT": "The operation timed out",
   "error.INVALID_STATE": "This action is not available in the current state",
   "error.IN_PLACE_CONFIRMATION_REQUIRED": "This update requires confirmation because no inactive OTA slot is available",
   "error.IO_ERROR": "A file or device input/output error occurred",
@@ -181,6 +192,7 @@ const RU: Record<TranslationKey, string> = {
   "status.package_ready": "Прошивка {name} готова",
   "status.disconnect_for_next": "Отключите прошитую плату для следующего цикла",
   "status.monitor_disconnected": "UART-монитор отключён",
+  "status.stopping": "Останавливаем операцию и освобождаем COM-порт…",
   "device.title": "Устройство",
   "device.subtitle": "Автоопределение ESP32",
   "device.detecting": "Определяем устройство…",
@@ -220,6 +232,8 @@ const RU: Record<TranslationKey, string> = {
   "factory.session_started": "Новая производственная сессия начата",
   "operation.waiting": "Ожидание запуска",
   "operation.running": "Выполняется…",
+  "operation.stop": "СТОП",
+  "operation.stopping": "Остановка…",
   "operation.disconnect": "Отключите плату",
   "operation.flash": "Прошить плату",
   "operation.update": "Обновить прошивку",
@@ -262,10 +276,15 @@ const RU: Record<TranslationKey, string> = {
   "stage.monitoring": "UART",
   "stage.passed": "Готово",
   "stage.failed": "Ошибка",
+  "stage.cancelled": "Остановлено",
   "stage.disconnected": "Отключено",
   "progress.validating": "Проверка прошивки",
   "progress.detecting": "Определение подключённой ESP32",
   "progress.connecting": "Подключение к ROM bootloader",
+  "progress.connect_attempt": "Подключение к ROM bootloader — попытка {current}/{total}",
+  "progress.connect_attempt_started": "Запущена попытка {current}/{total}; таймаут {seconds} секунд",
+  "progress.connect_attempt_failed": "Попытка {current}/{total} завершилась; подключение будет повторено, если это безопасно",
+  "progress.connect_retry": "Повтор подключения через 1 секунду",
   "progress.erasing": "Стирание flash — не отключайте питание",
   "progress.writing": "Запись прошивки на скорости 921600",
   "progress.verifying": "Проверка записанных данных",
@@ -273,6 +292,7 @@ const RU: Record<TranslationKey, string> = {
   "progress.monitoring": "UART-монитор открыт",
   "progress.passed": "Прошивка записана и проверена",
   "progress.failed": "Операция завершилась ошибкой",
+  "progress.cancelled": "Операция остановлена",
   "progress.disconnected": "Устройство отключено",
   "progress.segment": "Сегмент {current}/{total}",
   "progress.write_address": "Запись {bytes} байт по адресу {address}",
@@ -300,6 +320,8 @@ const RU: Record<TranslationKey, string> = {
   "error.DEVICE_DISCONNECTED": "ESP32 отключена",
   "error.DATA_DIRECTORY_UNWRITABLE": "Рабочая папка недоступна для записи",
   "error.OPERATION_IN_PROGRESS": "Другая операция уже выполняется",
+  "error.OPERATION_CANCELLED": "Операция остановлена",
+  "error.OPERATION_TIMEOUT": "Превышено время ожидания операции",
   "error.INVALID_STATE": "Действие недоступно в текущем состоянии",
   "error.IN_PLACE_CONFIRMATION_REQUIRED": "Обновление требует подтверждения: свободного OTA-слота нет",
   "error.IO_ERROR": "Ошибка чтения или записи файла либо устройства",
@@ -360,6 +382,31 @@ export function localizeOperationText(
 ): string {
   if (language === "ru" || !containsCyrillic(value)) return value;
   const t = createTranslator(language);
+  const connectAttempt = /Подключение к ROM bootloader — попытка (\d+)\/(\d+)/.exec(value);
+  if (connectAttempt) {
+    return t("progress.connect_attempt", {
+      current: connectAttempt[1],
+      total: connectAttempt[2],
+    });
+  }
+  const attemptStarted = /Запуск попытки (\d+)\/(\d+); таймаут (\d+) секунд/.exec(value);
+  if (attemptStarted) {
+    return t("progress.connect_attempt_started", {
+      current: attemptStarted[1],
+      total: attemptStarted[2],
+      seconds: attemptStarted[3],
+    });
+  }
+  const attemptFailed = /Попытка (\d+)\/(\d+) завершилась/.exec(value);
+  if (attemptFailed) {
+    return t("progress.connect_attempt_failed", {
+      current: attemptFailed[1],
+      total: attemptFailed[2],
+    });
+  }
+  if (value === "Повтор подключения через 1 секунду") {
+    return t("progress.connect_retry");
+  }
   const segment = /^Сегмент (\d+)\/(\d+)$/.exec(value);
   if (segment) {
     return t("progress.segment", { current: segment[1], total: segment[2] });

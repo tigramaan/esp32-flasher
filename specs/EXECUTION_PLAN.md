@@ -6,10 +6,10 @@
 
 | Этап | Результат | Состояние |
 |---|---|---|
-| Spec | REQ-001—REQ-027, US-001—US-005 | готово |
+| Spec | REQ-001—REQ-029, US-001—US-006 | готово |
 | Plan | архитектура, риски, storage/security/observability | готово |
 | Contracts | direct folders, legacy schema, IPC v1, CLI v1 | готово |
-| Tasks | T001—T084 | выполняется |
+| Tasks | T001—T092 | выполняется |
 | Core | folder/image/partition guards, OTA, marker, state, errors | реализовано |
 | Package tool | factory/update/validate/dry-run | реализовано |
 | Windows app | direct update/factory, monitor, report, portable storage | реализовано |

@@ -15,6 +15,8 @@
 | T067–T070 | safe COM lifecycle | non-invasive selection, normal-boot recovery, regressions, release |
 | T071–T075 | standalone UART | passive open, reconnect/reset/baud, flash lock, verification |
 | T076–T084 | localization/public release | RU/EN locale, ESP32 Flasher identity, README, Pages, SEO/GEO, GitHub Release |
+| T085–T092 | cancellable flash/recovery | same-EXE worker isolation, STOP, bounded connect retry and stage timeouts |
+| T093–T097 | Windows reset compatibility | esptool-compatible DTR/RTS profiles, retry envelope, CH340 HIL |
 
 Статус каждой задачи хранится только в feature `tasks.md`. HIL runbook может быть
 готов, даже если аппаратный прогон ещё не выполнен.

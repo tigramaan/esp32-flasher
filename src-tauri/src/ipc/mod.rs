@@ -171,6 +171,14 @@ pub async fn start_factory_flash(
 }
 
 #[tauri::command]
+pub async fn cancel_operation(state: State<'_, Arc<AppState>>) -> Result<bool> {
+    let state = state.inner().clone();
+    tokio::task::spawn_blocking(move || Ok(state.cancel_operation()))
+        .await
+        .map_err(join_error)?
+}
+
+#[tauri::command]
 pub fn send_serial(state: State<'_, Arc<AppState>>, data: String) -> Result<()> {
     state.send_serial(data.into_bytes())
 }

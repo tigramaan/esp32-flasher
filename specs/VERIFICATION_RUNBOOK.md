@@ -89,10 +89,12 @@ cargo run -p programmer-pack -- validate D:\packages\nova-factory
 - HIL-04: ten factory cycles, marker timeout and CSV reconciliation;
 - HIL-05: sustained UART stream and UI responsiveness.
 - HIL-06: passive standalone UART, reconnect/reset/baud and flash ownership handoff.
+- HIL-07: STOP, connect retry/timeout, worker crash and COM release.
+- HIL-08: esptool-compatible 50/550 ms reset profiles on a problematic CH340 board.
 
 ## Traceability
 
-Проверить, что каждая строка `REQ-001`—`REQ-027` существует в
+Проверить, что каждая строка `REQ-001`—`REQ-030` существует в
 `TRACEABILITY_MATRIX.md`, а direct-folder/legacy manifest/IPC/CLI совпадают с кодом.
 
 ## Known limitations
@@ -115,7 +117,10 @@ cargo run -p programmer-pack -- validate D:\packages\nova-factory
 - [x] EXE launch smoke — PASS; title `ESP32 Flasher`, process responsive and cleanly stopped (2026-07-29)
 - [x] app visual smoke — PASS на реальной ESP32/COM4: passive monitor, data stream, no line wrap, disconnect and production view (2026-07-29)
 - [ ] production Pages viewport matrix 320/390/768/1024/1440/1920/2560/3840 CSS px
-- [ ] HIL-01—HIL-06 — PASS на целевом оборудовании
+- [ ] HIL-01—HIL-08 — полный PASS на целевом оборудовании
+- [x] HIL-08 connect-only — оба профиля 50/550 мс определили ESP32-D0WD-V3 через CH340 без записи flash (2026-08-13)
 - [x] CSV и logs — автоматические проверки записи, счётчиков, sanitization и лимита PASS (2026-07-29)
 - [x] standalone UART automated verification и portable rebuild — PASS (2026-07-29)
 - [x] direct-folder fixtures, release verification и traceability — PASS, 27/27 REQ (2026-07-29)
+- [x] STOP/reset regression — PASS, 55 Rust tests, 29 Vitest, clippy, traceability 30/30 (2026-08-13)
+- [x] replacement portable EXE — PASS, 12,331,008 bytes, SHA-256 `FF71A29A82F0E130BEE8882020420430A5AE10A74922355602833F9E82FF9C15` (2026-08-13)

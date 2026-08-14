@@ -21,3 +21,5 @@
 | Windows locale + bilingual UI | `ipc::system_locale`, `src/i18n.ts`, state/view | T076–T079 | locale/error/English DOM tests |
 | Public product identity and portable release | Cargo/Tauri/npm/workflows/README | T080–T084 | source audit, release build and download smoke |
 | GitHub Pages/SEO/GEO | `site/`, Pages workflow | T081–T084 | site validator + browser viewport matrix |
+| Cancellable flash worker v1 | `application/worker.rs`, `coordinator.rs`, `cancel_operation` IPC | T085–T092 | Rust policy/coordinator tests, TypeScript STOP tests, HIL-07 |
+| Windows reset profile policy | `application/worker.rs`, `platform/esp.rs` | T093–T097 | Rust profile regression, opt-in CH340 connect test, HIL-08 |

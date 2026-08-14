@@ -54,7 +54,7 @@ pub struct PortCandidate {
     pub known_bridge: bool,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DetectedDevice {
     pub port: String,
     pub description: String,
@@ -63,7 +63,7 @@ pub struct DetectedDevice {
     pub flash_size_bytes: u64,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OperationProgress {
     pub stage: OperationStage,
     pub current: u64,
@@ -148,7 +148,7 @@ pub struct FactorySessionSummary {
     pub report_path: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct UpdateRequest {
     pub package_path: String,
@@ -156,7 +156,7 @@ pub struct UpdateRequest {
     pub confirm_in_place: bool,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FactoryFlashRequest {
     pub package_path: String,

@@ -1,7 +1,7 @@
 {
   "name": "esp32-flasher",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -29,8 +29,9 @@
     "vitest": "4.1.10"
   },
   "overrides": {
+    "nanoid": "3.3.18",
     "picomatch": "4.0.4",
-    "postcss": "8.5.18",
+    "postcss": "8.5.26",
     "rollup": "4.59.0"
   }
 }

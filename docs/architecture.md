@@ -10,16 +10,16 @@ Tauri IPC commands + typed Channel
 application coordinator/update/factory
         |                    |
         v                    v
-programmer-core          platform adapters
-(pure domain)            (espflash/serial/fs/csv)
+same-EXE flash worker   programmer-core + platform adapters
+(cancellable process)   (pure domain / serial / fs / csv)
 ```
 
 ## Границы
 
 - `programmer-core` — pure/domain: ESP image and partition models, legacy JSON,
   guards, hash/range validation, OTA calculations, operation states, marker detector.
-- `application` — smart orchestration: single-operation lease, update/factory
-  workflows, typed events and final result.
+- `application` — smart orchestration: single-operation lease, worker supervisor,
+  update/factory workflows, typed events and final result.
 - `platform` — I/O: ROM bootloader, COM monitor, canonical filesystem, log/CSV.
 - `ipc` — public desktop boundary: strict requests and serializable errors.
 - `src` — UI-only state/rendering; flash decisions здесь отсутствуют.
@@ -35,13 +35,15 @@ normal-boot reset after acquiring the port.
 ## Состояния операции
 
 `idle -> validating -> detecting -> connecting -> [erasing] -> writing ->
-verifying -> resetting -> monitoring -> passed|failed -> disconnected`.
+verifying -> resetting -> monitoring -> passed|failed|cancelled -> disconnected`.
 
 Недопустимый переход отклоняется. UI получает те же стадии, что operation log.
 
 ## Потоки
 
-Tauri async command переносит blocking flash workflow в `spawn_blocking`. UART
+Tauri async command переносит supervisor в `spawn_blocking`. Потенциально
+зависающие ROM/erase/write/verify вызовы выполняются в дочернем процессе того же
+EXE. STOP или timeout завершает процесс и освобождает его COM handle. UART
 читается отдельным bounded thread. UI events проходят через Tauri `Channel`;
 рендер объединяется через `requestAnimationFrame`, terminal хранит не более
 10 000 строк.
@@ -51,6 +53,16 @@ Tauri async command переносит blocking flash workflow в `spawn_blockin
 блокирует новые monitor/reset/disconnect команды, затем отправляет shutdown и
 ждёт завершения worker до двух секунд. Поэтому один COM-порт не используется
 одновременно двумя потоками.
+
+Supervisor делает до трёх connect-попыток по 20 секунд. Retry разрешён только
+до `MutationStarted`; erase/write/verify имеют общий аварийный лимит пять минут
+и не повторяются автоматически. Каждая попытка и причина завершения сохраняются
+в operation log.
+
+Номер connect-попытки передаётся worker через типизированный envelope. В Windows
+первая и вторая попытки используют совместимую с esptool последовательность
+DTR/RTS с задержкой отпускания GPIO0 50 и 550 мс; третья использует штатную
+последовательность espflash. Это остаётся до-mutation операцией и отражается в логе.
 
 Windows locale читается до первого render через `system_locale`. Только `ru-*`
 выбирает русский каталог; любой другой locale или ошибка IPC выбирает English.
