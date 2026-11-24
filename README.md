@@ -9,8 +9,8 @@ ESP32 firmware over UART and monitoring serial output. It is designed for two
 jobs: simple firmware updates by end users and fast, repeatable factory
 programming.
 
-Download the latest portable build:
-[ESP32-Flasher-Windows-x64.exe](https://github.com/tigramaan/esp32-flasher/releases/latest/download/ESP32-Flasher-Windows-x64.exe).
+Download the latest portable build from
+[the project website](https://tigramaan.github.io/esp32-flasher/downloads/ESP32-Flasher-Windows-x64.exe) or GitHub Releases ([ESP32-Flasher-Windows-x64.exe](https://github.com/tigramaan/esp32-flasher/releases/latest/download/ESP32-Flasher-Windows-x64.exe)).
 There is no installer and no Python dependency.
 
 Project website:
